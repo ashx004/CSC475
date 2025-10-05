@@ -1,0 +1,6 @@
+10-3-25 4:50pm Started thinking through how to make a Matrix class work. Has rows and columns, but unsure what the types are for those. Can do multiplication with another Matrix, and can do addition with another Matrix
+10-4-25 1:46pm Matrix has a 2d float array called data. Also has a length and depth field (respectively rows and columns). all fields private with getters/setters. A matrix can do multiplication and addition. Working on implementing logic of these methods. Referencing google for how matrix addition/multiiplication work, algorithmically
+10-4-25 1:56pm For matrix addition, both matrices must be n*n to be added. if they are, just add element by element into a new matrix. 
+10-4-25 2:04pm implemented addition. gonna try to learn how to implement multiplication algorithmically.
+10-4-25 2:41pm reference: https://www.geeksforgeeks.org/maths/matrix-multiplication/. For matrix mult. to be defined as operation between two matrices A and B, A must have the same amount of rows as B has columns. The multiplication then returns a new matrix that is ordered by the amount of columns in A, and the amount of rows in B. 
+10-4-25 4:49pm stuck on logic for how to make multiplication work so instead just testing addition to make sure its logic is proper. spoiler alert: it is 
