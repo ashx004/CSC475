@@ -4,4 +4,4 @@
 10-4-25 2:04pm implemented addition. gonna try to learn how to implement multiplication algorithmically.
 10-4-25 2:41pm reference: https://www.geeksforgeeks.org/maths/matrix-multiplication/. For matrix mult. to be defined as operation between two matrices A and B, A must have the same amount of rows as B has columns. The multiplication then returns a new matrix that is ordered by the amount of columns in A, and the amount of rows in B. 
 10-4-25 4:49pm stuck on logic for how to make multiplication work so instead just testing addition to make sure its logic is proper. spoiler alert: it is 
-10-5-25 4:27pm reference: https://en.wikipedia.org/wiki/Matrix_multiplication_algorithm going to use this for iterative approach to matrix multiplication method. going to alter the algorithm to use the methods and privacy I have already defined 
+10-5-25 4:27pm reference: https://en.wikipedia.org/wiki/Matrix_multiplication_algorithm going to use this for iterative approach to matrix multiplication method. going to alter the algorithm to use the methods and privacy I have already defined. now want to test to make sure this algorithm will be sufficient
