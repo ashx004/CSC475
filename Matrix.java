@@ -22,6 +22,10 @@ public class Matrix {
         return this.depth;
     }
 
+    public void setData(int i, int j, float value) {
+        data[i][j] = value;
+    }
+
     public Matrix multiply(Matrix other) {
         // length of first must correspond to the depth of the second 
         if (this.getLength() != other.getDepth()) {
@@ -31,7 +35,16 @@ public class Matrix {
             // given A is an z x a, and b is a:
             // new matrix becomes an a x b, where a is the depth of the first matrix and b is the length of the second matrix
             Matrix mat = new Matrix(this.getDepth(), other.getLength());
-            
+            for (int i = 0; i < this.getLength(); i++) {
+                for (int j = 0; j < mat.getDepth(); j++) {
+                    int sum = 0;
+                    for (int k = 0; k < this.getDepth(); k++) {
+                        sum += this.getData()[i][j] * other.getData()[k][j];
+                    }
+                    mat.setData(i, j, sum);
+                }
+            }
+            return mat;
         }
     }
 
