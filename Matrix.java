@@ -23,21 +23,21 @@ public class Matrix {
     }
 
     public Matrix multiply(Matrix other) {
-        if (data.length != other.depth) {
+        // length of first must correspond to the depth of the second 
+        if (this.getLength() != other.getDepth()) {
             return null;
         }
         else {
-            Matrix matrix = new Matrix(depth, other.length);
-            for (int i = 0; i < data.length; i++) {
-                int k, j = 0;
-
-            }
+            // given A is an z x a, and b is a:
+            // new matrix becomes an a x b, where a is the depth of the first matrix and b is the length of the second matrix
+            Matrix mat = new Matrix(this.getDepth(), other.getLength());
+            
         }
     }
 
     // a method to add two matrices and return their sum as a new Matrix
     public Matrix add(Matrix other) {
-        // matrices must both be n x m, where n is rows and m is cols
+        // matrices must both be n x m, where n is length and m is depth
         if (this.length != other.length && this.depth != other.depth) {
             return null;
         } 
