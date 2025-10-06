@@ -1,3 +1,9 @@
+/*
+ * Name: Ashton Harrell
+ * Date: 10/3/2025
+ * Description: Small neural network training 
+ */
+
 
 public class Main {
     public static void main(String[] args) {
