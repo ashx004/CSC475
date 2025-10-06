@@ -1,7 +1,7 @@
 // a matrix has rows and columns, and can do addition and multiplication with other matrices
 public class Matrix {
     private final float[][] data;
-    // use these to be able to do addition and multiplication operations 
+    // use these to be able to do addition and multiplication operations easier later
     private final int length; // represents how many subarrays are in the array 
     private final int depth; // represents how many elements are in a subarray
 
