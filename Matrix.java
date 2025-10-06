@@ -5,6 +5,7 @@ public class Matrix {
     private final int length; // represents how many subarrays are in the array 
     private final int depth; // represents how many elements are in a subarray
 
+    // ctor
     public Matrix(int rows, int cols) {
         this.length = rows;
         this.depth = cols;
@@ -28,7 +29,7 @@ public class Matrix {
         data[i][j] = value;
     }
 
-    // TODO: get working
+    // a method to multiply two matrices and return their product as a new Matrix
     public Matrix multiply(Matrix other) {
         // length of first must correspond to the depth of the second 
         if (this.getDepth() != other.getLength()) {
@@ -41,12 +42,11 @@ public class Matrix {
             for (int i = 0; i < this.getLength(); i++) {
                 // j: iterate across cols
                 for (int j = 0; j < other.getDepth(); j++) {
-                    int sum = 0;
+                    float sum = 0;
                     // k: index to track correllated values 
                     // take dot product of row (i) with corresponding column (j), where k is the index of the elements at each corresponding row or column
                     for (int k = 0; k < this.getDepth(); k++) {
                         sum += this.getData()[i][k] * other.getData()[k][j];
-                        System.out.println(sum);
                     }
                     mat.setData(i, j, sum);
                 }
