@@ -1,5 +1,4 @@
 // a matrix has rows and columns, and can do addition and multiplication with other matrices
-
 public class Matrix {
     private final float[][] data;
     // use these to be able to do addition and multiplication operations 
@@ -32,17 +31,16 @@ public class Matrix {
     // TODO: get working
     public Matrix multiply(Matrix other) {
         // length of first must correspond to the depth of the second 
-        if (this.getLength() != other.getDepth()) {
+        if (this.getDepth() != other.getLength()) {
             return null;
         } 
         else {
-            // given A is an z x a, and b is a:
-            // new matrix becomes an a x b, where a is the depth of the first matrix and b is the length of the second matrix
-            Matrix mat = new Matrix(this.getDepth(), other.getLength());
+            // new matrix becomes an a x b, where a is the length of the first matrix and b is the depth of the second matrix
+            Matrix mat = new Matrix(this.getLength(), other.getDepth());
             // i: iterate across rows 
             for (int i = 0; i < this.getLength(); i++) {
                 // j: iterate across cols
-                for (int j = 0; j < mat.getDepth(); j++) {
+                for (int j = 0; j < other.getDepth(); j++) {
                     int sum = 0;
                     // k: index to track correllated values 
                     // take dot product of row (i) with corresponding column (j), where k is the index of the elements at each corresponding row or column
@@ -60,7 +58,7 @@ public class Matrix {
     // a method to add two matrices and return their sum as a new Matrix
     public Matrix add(Matrix other) {
         // matrices must both be n x m, where n is length and m is depth
-        if (this.length != other.length && this.depth != other.depth) {
+        if (this.length != other.length || this.depth != other.depth) {
             return null;
         } 
         else {
