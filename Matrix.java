@@ -73,4 +73,30 @@ public class Matrix {
             return matrix;
         }
     }
+
+    public Matrix transpose() {
+        // new Matrix that reverses the shape of the original 
+        Matrix mat = new Matrix(this.cols, this.rows);
+        for (int i = 0; i < this.rows; i++) {
+            for (int j = 0; j < this.cols; j++) {
+                mat.data[j][i] = this.data[i][j];
+            }
+        }
+        return mat;
+    }
+
+    public Matrix hadamark(Matrix other) {
+        if (this.rows != other.rows || this.cols != other.cols) {
+            return null;
+        }
+        else {
+            Matrix mat = new Matrix(this.rows, this.cols);
+            for (int i = 0; i < this.rows; i++) {
+                for (int j = 0; j < this.cols; j++) {
+                    mat.data[i][j] = this.data[i][j] * other.data[i][j];
+                }
+            }
+            return mat;
+        }
+    }
 }
