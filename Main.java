@@ -91,8 +91,6 @@ public class Main {
 
         y_4.setData(0, 0, 1f);
         y_4.setData(1, 0, 0f);
-
-
     }
 
     // activation function 
