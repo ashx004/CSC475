@@ -58,6 +58,7 @@ public class Matrix {
     // a method to add two matrices and return their sum as a new Matrix
     public Matrix add(Matrix other) {
         // matrices must both be n x m, where n is length and m is depth
+        // if both dimensions dont respectively match, the operation is not defined 
         if (this.length != other.length || this.depth != other.depth) {
             return null;
         } 
