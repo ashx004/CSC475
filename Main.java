@@ -23,6 +23,9 @@ public class Main {
 
         Matrix y_1 = new Matrix(2, 1);
         Matrix y_2 = new Matrix(2, 1);
+        Matrix y_3 = new Matrix(2, 1);
+        Matrix y_4 = new Matrix(2, 1);
+
 
 
         // fill weights and biases
@@ -56,8 +59,40 @@ public class Main {
         b_2.setData(0, 0, 0.16f);
         b_2.setData(1, 0, -0.46f);
 
-        // TODO: fill inputs and outputs
-        
+        // fill inputs and outputs
+        x_1.setData(0, 0, 0f);
+        x_1.setData(1, 0, 1f);
+        x_1.setData(2, 0, 0f);
+        x_1.setData(3, 0, 1f);
+
+        x_2.setData(0, 0, 1f);
+        x_2.setData(1, 0, 0f);
+        x_2.setData(2, 0, 1f);
+        x_2.setData(3, 0, 0f);
+
+        x_3.setData(0, 0, 0f);
+        x_3.setData(1, 0, 0f);
+        x_3.setData(2, 0, 1f);
+        x_3.setData(3, 0, 1f);
+
+        x_4.setData(0, 0, 1f);
+        x_4.setData(0, 0, 1f);
+        x_4.setData(0, 0, 0f);
+        x_4.setData(0, 0, 0f);
+
+        y_1.setData(0, 0, 0f);
+        y_1.setData(1, 0, 1f);
+
+        y_2.setData(0, 0, 1f);
+        y_2.setData(1, 0, 0f);
+
+        y_3.setData(0, 0, 0f);
+        y_3.setData(1, 0, 1f);
+
+        y_4.setData(0, 0, 1f);
+        y_4.setData(1, 0, 0f);
+
+
     }
 
     // activation function 
