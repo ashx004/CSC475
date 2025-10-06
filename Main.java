@@ -1,19 +1,31 @@
 public class Main {
     public static void main(String[] args) {
-        Matrix mat = new Matrix(3, 4);
-        Matrix other = new Matrix(3, 4);
+        Matrix mat = new Matrix(2, 4);
+        int counter = 0;
+        for (int i = 0; i < mat.getLength(); i++) {
+            for (int j = 0; j < mat.getDepth(); j++) {
+                counter += 2;
+                mat.setData(i, j, counter);
+            }
+        }
+        Matrix other = new Matrix(3, 2);
+        for (int i = 0; i < other.getLength(); i++) {
+            for (int j = 0; j < other.getDepth(); j++) {
+                counter += 2;
+                other.setData(i, j, counter);
+            }
+        }
         Matrix added = mat.add(other);
         if (added != null) {
-            float[][] mat2 = added.getData();
-            for (int i = 0; i < mat2.length; i++) {
-                System.out.println("This is the ");
-                for (int j = 0; j < mat2[i].length; j++) {
-                    System.out.println(mat2[i][j]);
+            for (int i = 0; i < mat.getLength(); i++) {
+                for (int j = 0; j < mat.getDepth(); j++) {
+                    System.out.println(mat.getData()[i][j] + " " + other.getData()[i][j] + " " + added.getData()[i][j]);
                 }
+                System.out.println();
             }
         }
         else {
-            System.out.println(added);
+            System.out.println("didnt work!");
         }
     }
 }

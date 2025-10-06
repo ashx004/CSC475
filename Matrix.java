@@ -1,9 +1,10 @@
 // a matrix has rows and columns, and can do addition and multiplication with other matrices
+
 public class Matrix {
     private final float[][] data;
     // use these to be able to do addition and multiplication operations 
-    private final int length;
-    private final int depth;
+    private final int length; // represents how many subarrays are in the array 
+    private final int depth; // represents how many elements are in a subarray
 
     public Matrix(int rows, int cols) {
         this.length = rows;
@@ -28,23 +29,26 @@ public class Matrix {
         data[i][j] = value;
     }
 
-    // TODO: get working 
+    // TODO: get working
     public Matrix multiply(Matrix other) {
         // length of first must correspond to the depth of the second 
         if (this.getLength() != other.getDepth()) {
             return null;
-        }
+        } 
         else {
             // given A is an z x a, and b is a:
             // new matrix becomes an a x b, where a is the depth of the first matrix and b is the length of the second matrix
             Matrix mat = new Matrix(this.getDepth(), other.getLength());
-            // iterate across rows 
+            // i: iterate across rows 
             for (int i = 0; i < this.getLength(); i++) {
-                // iterate across cols
+                // j: iterate across cols
                 for (int j = 0; j < mat.getDepth(); j++) {
                     int sum = 0;
+                    // k: index to track correllated values 
+                    // take dot product of row (i) with corresponding column (j), where k is the index of the elements at each corresponding row or column
                     for (int k = 0; k < this.getDepth(); k++) {
-                        sum += this.getData()[i][j] * other.getData()[k][j];
+                        sum += this.getData()[i][k] * other.getData()[k][j];
+                        System.out.println(sum);
                     }
                     mat.setData(i, j, sum);
                 }
