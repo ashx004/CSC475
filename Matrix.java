@@ -74,18 +74,22 @@ public class Matrix {
         }
     }
 
+    // TODO: fix logic of this
     public Matrix transpose() {
         // new Matrix that reverses the shape of the original 
         Matrix mat = new Matrix(this.cols, this.rows);
         for (int i = 0; i < this.rows; i++) {
+            System.out.println((i + 1)+ " row:");
             for (int j = 0; j < this.cols; j++) {
-                mat.data[j][i] = this.data[i][j];
+                mat.data[j][i] = this.data[j][i];
+                System.out.println(mat.data[i][j]);
             }
         }
         return mat;
     }
 
-    public Matrix hadamark(Matrix other) {
+    // hadamark multiplication method between two matrices
+    public Matrix hadamard(Matrix other) {
         if (this.rows != other.rows || this.cols != other.cols) {
             return null;
         }
