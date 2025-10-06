@@ -8,3 +8,4 @@
 10-5-25 5:13pm logic errors in how i am understanding filling a Matrix with numbers. gotta think through how to actually go about filling a matrix with values 
 10-5-25 9:04pm fixed logic error in how i was assigning new matrix rows and columns which was causing Arrayoutofboundsexception bc it was not the correct dimensions when trying to fill it. Also fixed logic error when checking dimensions of add(). I was not properly checking whether both dimensions were equal so some m x n's could get thru where m != n. both methods now work. onto sigmoid function 
 10-5-25 11:12pm removed unnecessary and wasteful getter calls in class methods. fields are private but we are still in the class so we dont need to use getters
+10-6-25 10:14am starting on Main. adding weights, biases, inputs, and output Matrices and filling them with the predetermined values 

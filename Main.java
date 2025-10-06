@@ -15,6 +15,16 @@ public class Main {
         Matrix b_1 = new Matrix(3, 1);
         Matrix b_2 = new Matrix(2, 1);
 
+        // create inputs and outputs
+        Matrix x_1 = new Matrix(4, 1);
+        Matrix x_2 = new Matrix(4, 1);
+        Matrix x_3 = new Matrix(4, 1);
+        Matrix x_4 = new Matrix(4, 1);
+
+        Matrix y_1 = new Matrix(2, 1);
+        Matrix y_2 = new Matrix(2, 1);
+
+
         // fill weights and biases
         w_1.setData(0, 0, -0.21f);
         w_1.setData(0, 1, 0.72f);
@@ -45,6 +55,9 @@ public class Main {
 
         b_2.setData(0, 0, 0.16f);
         b_2.setData(1, 0, -0.46f);
+
+        // TODO: fill inputs and outputs
+        
     }
 
     // activation function 
