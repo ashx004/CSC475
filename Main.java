@@ -4,7 +4,6 @@
  * Description: Small neural network training 
  */
 
-
 public class Main {
     // learning rate 
     private final static int LR = 10;
