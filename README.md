@@ -1,0 +1,2 @@
+This project is for Assignment 2 pt. 1 of CSC475. It is training a small network of 4 input nodes, 3 hidden nodes, and 2 output nodes. It is a feed forward network using backpropagation and stochastic gradient descent to improve.
+The network is fed two minibatches of data that it will run through each epoch, for 6 epochs. There is a provided .XLSX that contains values for each intermediate step along the way to verify that the network is generating the values it should. 
