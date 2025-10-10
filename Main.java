@@ -109,14 +109,6 @@ public class Main {
 
         ArrayList<Matrix> activations = new ArrayList<>();
         activations.add(x_1);
-
-        Matrix mat = getActivations(w_1, x_1, b_1);
-        for (int i = 0; i < mat.getRows(); i++) {
-            for (int j = 0; j < mat.getCols(); j++) {
-                System.out.print(mat.getData()[i][j] + " ");
-            }
-            System.out.println();
-        }
     }
 
     // activation function 
@@ -125,7 +117,8 @@ public class Main {
     }
 
     // calculate activation matrix (forward pass through one layer)
-    public static Matrix getActivations(Matrix weights, Matrix oldActivations, Matrix bias) {
+    public static Matrix forwardPass(Matrix weights, Matrix oldActivations, Matrix bias) {
+        // (W^L * A^(L-1)) + B^L is what this is performing
         Matrix mat = weights.multiply(oldActivations).add(bias);
         for (int i = 0; i < mat.getRows(); i++) {
             for (int j = 0; j < mat.getCols(); j++) {
@@ -134,5 +127,4 @@ public class Main {
         }
         return mat;
     }
-    public static 
 }
