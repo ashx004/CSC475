@@ -1,13 +1,15 @@
 // a matrix has rows and columns, and can do addition, multiplication, 
 //hadamard multiplication with other matrices, and can transpose
+
 public class Matrix {
+
     private final float[][] data;
     // use these to be able to do addition and multiplication operations easier
     // later
     private final int rows; // represents how many subarrays are in the array
     private final int cols; // represents how many elements are in a subarray
-
     // ctor
+
     public Matrix(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
@@ -71,6 +73,25 @@ public class Matrix {
             for (int i = 0; i < this.getRows(); i++) {
                 for (int j = 0; j < this.getCols(); j++) {
                     matrix.data[i][j] = this.data[i][j] + other.data[i][j];
+                }
+            }
+            return matrix;
+        }
+    }
+
+    // a method to subtract two matrices and return their difference as a new Matrix
+    public Matrix subtract(Matrix other) {
+        // matrices must both be n x m, where n is rows and m is depth
+        // if both dimensions dont respectively match, the operation is not defined
+        if (this.rows != other.rows || this.cols != other.cols) {
+            return null;
+        } else {
+            Matrix matrix = new Matrix(this.rows, this.cols);
+            // go row by row and add each element at position (i, j) and place it in the new
+            // matrix we are creating at (i, j)
+            for (int i = 0; i < this.getRows(); i++) {
+                for (int j = 0; j < this.getCols(); j++) {
+                    matrix.data[i][j] = this.data[i][j] - other.data[i][j];
                 }
             }
             return matrix;
