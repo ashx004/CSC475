@@ -1,8 +1,6 @@
-// a matrix has rows and columns, and can do addition, multiplication, 
-//hadamard multiplication with other matrices, and can transpose
-
+// a Matrix has rows and columns, and can do addition, multiplication, subtraction 
+// hadamard multiplication with other matrices, and can transpose
 public class Matrix {
-
     private final float[][] data;
     // use these to be able to do addition and multiplication operations easier
     // later
@@ -34,11 +32,13 @@ public class Matrix {
     }
 
     // a method to multiply two matrices and return their product as a new Matrix
+    // reference: https://en.wikipedia.org/wiki/Matrix_multiplication_algorithm
     public Matrix multiply(Matrix other) {
         // rows of first must correspond to the depth of the second
         if (this.cols != other.rows) {
             return null;
-        } else {
+        } 
+        else {
             // new matrix becomes an a x b, where a is the rows of the first matrix and b is
             // the depth of the second matrix
             Matrix mat = new Matrix(this.rows, other.cols);
@@ -66,7 +66,8 @@ public class Matrix {
         // if both dimensions dont respectively match, the operation is not defined
         if (this.rows != other.rows || this.cols != other.cols) {
             return null;
-        } else {
+        } 
+        else {
             Matrix matrix = new Matrix(this.rows, this.cols);
             // go row by row and add each element at position (i, j) and place it in the new
             // matrix we are creating at (i, j)
@@ -80,15 +81,13 @@ public class Matrix {
     }
 
     // a method to subtract two matrices and return their difference as a new Matrix
+    // exact same logic as add() with obvious difference 
     public Matrix subtract(Matrix other) {
-        // matrices must both be n x m, where n is rows and m is depth
-        // if both dimensions dont respectively match, the operation is not defined
         if (this.rows != other.rows || this.cols != other.cols) {
             return null;
-        } else {
+        } 
+        else {
             Matrix matrix = new Matrix(this.rows, this.cols);
-            // go row by row and add each element at position (i, j) and place it in the new
-            // matrix we are creating at (i, j)
             for (int i = 0; i < this.getRows(); i++) {
                 for (int j = 0; j < this.getCols(); j++) {
                     matrix.data[i][j] = this.data[i][j] - other.data[i][j];
@@ -115,7 +114,8 @@ public class Matrix {
     public Matrix hadamard(Matrix other) {
         if (this.rows != other.rows || this.cols != other.cols) {
             return null;
-        } else {
+        } 
+        else {
             Matrix mat = new Matrix(this.rows, this.cols);
             for (int i = 0; i < this.rows; i++) {
                 for (int j = 0; j < this.cols; j++) {
@@ -123,6 +123,15 @@ public class Matrix {
                 }
             }
             return mat;
+        }
+    }
+
+    public void print() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                System.out.print(data[i][j] + " ");
+            }
+            System.out.println();
         }
     }
 }
