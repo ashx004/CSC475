@@ -1,9 +1,10 @@
-// a Matrix has rows and columns, and can do addition, multiplication, subtraction 
-// hadamard multiplication with other matrices, and can transpose
+// a matrix has rows and columns, and can do addition, multiplication, 
+//hadamard multiplication with other matrices, and can transpose
+
 public class Matrix {
+
     private final double[][] data;
-    // use these to be able to do addition and multiplication operations easier
-    // later
+    // use these to be able to do addition and multiplication operations easier later
     private final int rows; // represents how many subarrays are in the array
     private final int cols; // represents how many elements are in a subarray
     // ctor
@@ -32,13 +33,11 @@ public class Matrix {
     }
 
     // a method to multiply two matrices and return their product as a new Matrix
-    // reference: https://en.wikipedia.org/wiki/Matrix_multiplication_algorithm
     public Matrix multiply(Matrix other) {
         // rows of first must correspond to the depth of the second
         if (this.cols != other.rows) {
             return null;
-        } 
-        else {
+        } else {
             // new matrix becomes an a x b, where a is the rows of the first matrix and b is
             // the depth of the second matrix
             Matrix mat = new Matrix(this.rows, other.cols);
@@ -66,8 +65,7 @@ public class Matrix {
         // if both dimensions dont respectively match, the operation is not defined
         if (this.rows != other.rows || this.cols != other.cols) {
             return null;
-        } 
-        else {
+        } else {
             Matrix matrix = new Matrix(this.rows, this.cols);
             // go row by row and add each element at position (i, j) and place it in the new
             // matrix we are creating at (i, j)
@@ -81,12 +79,11 @@ public class Matrix {
     }
 
     // a method to subtract two matrices and return their difference as a new Matrix
-    // exact same logic as add() with obvious difference 
+    // exact same logic as add() but with obvious difference 
     public Matrix subtract(Matrix other) {
         if (this.rows != other.rows || this.cols != other.cols) {
             return null;
-        } 
-        else {
+        } else {
             Matrix matrix = new Matrix(this.rows, this.cols);
             for (int i = 0; i < this.getRows(); i++) {
                 for (int j = 0; j < this.getCols(); j++) {
@@ -114,8 +111,7 @@ public class Matrix {
     public Matrix hadamard(Matrix other) {
         if (this.rows != other.rows || this.cols != other.cols) {
             return null;
-        } 
-        else {
+        } else {
             Matrix mat = new Matrix(this.rows, this.cols);
             for (int i = 0; i < this.rows; i++) {
                 for (int j = 0; j < this.cols; j++) {
@@ -126,13 +122,31 @@ public class Matrix {
         }
     }
 
-    // a method to print the contents of a Matrix (use only for debugging and testing)
+    // a method to scale a matrix by a given scalar 
+    public void scaled(double scalar) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                data[i][j] *= scalar;
+            }
+        }
+    }
+
+    // a method to print the contents of a Matrix in logical ordering
     public void print() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 System.out.print(data[i][j] + " ");
             }
             System.out.println();
+        }
+        System.out.println();
+    }
+
+    public void sum(Matrix other) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                data[i][j] += other.data[i][j];
+            }
         }
     }
 }
