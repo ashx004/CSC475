@@ -26,77 +26,73 @@ public class Main {
 
         Matrix y_1 = new Matrix(2, 1);
         Matrix y_2 = new Matrix(2, 1);
-        Matrix y_3 = new Matrix(2, 1);
-        Matrix y_4 = new Matrix(2, 1);
-
+        
         // fill weights and biases
-        w_1.setData(0, 0, -0.21f);
-        w_1.setData(0, 1, 0.72f);
-        w_1.setData(0, 2, 0.25f);
-        w_1.setData(0, 3, 1f);
+        w_1.setData(0, 0, -0.21);
+        w_1.setData(0, 1, 0.72);
+        w_1.setData(0, 2, 0.25);
+        w_1.setData(0, 3, 1);
 
-        w_1.setData(1, 0, -0.94f);
-        w_1.setData(1, 1, -0.41f);
-        w_1.setData(1, 2, -0.47f);
-        w_1.setData(1, 3, 0.63f);
+        w_1.setData(1, 0, -0.94);
+        w_1.setData(1, 1, -0.41);
+        w_1.setData(1, 2, -0.47);
+        w_1.setData(1, 3, 0.63);
 
-        w_1.setData(2, 0, 0.15f);
-        w_1.setData(2, 1, 0.55f);
-        w_1.setData(2, 2, -0.49f);
-        w_1.setData(2, 3, -0.75f);
+        w_1.setData(2, 0, 0.15);
+        w_1.setData(2, 1, 0.55);
+        w_1.setData(2, 2, -0.49);
+        w_1.setData(2, 3, -0.75);
 
-        w_2.setData(0, 0, 0.76f);
-        w_2.setData(0, 1, 0.48f);
-        w_2.setData(0, 2, -0.73f);
+        w_2.setData(0, 0, 0.76);
+        w_2.setData(0, 1, 0.48);
+        w_2.setData(0, 2, -0.73);
 
-        w_2.setData(1, 0, 0.34f);
-        w_2.setData(1, 1, 0.89f);
-        w_2.setData(1, 2, -0.23f);
+        w_2.setData(1, 0, 0.34);
+        w_2.setData(1, 1, 0.89);
+        w_2.setData(1, 2, -0.23);
 
-        b_1.setData(0, 0, 0.1f);
-        b_1.setData(1, 0, -0.36f);
-        b_1.setData(2, 0, -0.31f);
+        b_1.setData(0, 0, 0.1);
+        b_1.setData(1, 0, -0.36);
+        b_1.setData(2, 0, -0.31);
 
-        b_2.setData(0, 0, 0.16f);
-        b_2.setData(1, 0, -0.46f);
+        b_2.setData(0, 0, 0.16);
+        b_2.setData(1, 0, -0.46);
 
         // fill inputs and outputs
-        x_1.setData(0, 0, 0f);
-        x_1.setData(1, 0, 1f);
-        x_1.setData(2, 0, 0f);
-        x_1.setData(3, 0, 1f);
+        x_1.setData(0, 0, 0);
+        x_1.setData(1, 0, 1);
+        x_1.setData(2, 0, 0);
+        x_1.setData(3, 0, 1);
 
-        x_2.setData(0, 0, 1f);
-        x_2.setData(1, 0, 0f);
-        x_2.setData(2, 0, 1f);
-        x_2.setData(3, 0, 0f);
+        x_2.setData(0, 0, 1);
+        x_2.setData(1, 0, 0);
+        x_2.setData(2, 0, 1);
+        x_2.setData(3, 0, 0);
 
-        x_3.setData(0, 0, 0f);
-        x_3.setData(1, 0, 0f);
-        x_3.setData(2, 0, 1f);
-        x_3.setData(3, 0, 1f);
+        x_3.setData(0, 0, 0);
+        x_3.setData(1, 0, 0);
+        x_3.setData(2, 0, 1);
+        x_3.setData(3, 0, 1);
 
-        x_4.setData(0, 0, 1f);
-        x_4.setData(0, 0, 1f);
-        x_4.setData(0, 0, 0f);
-        x_4.setData(0, 0, 0f);
+        x_4.setData(0, 0, 1);
+        x_4.setData(1, 0, 1);
+        x_4.setData(2, 0, 0);
+        x_4.setData(3, 0, 0);
 
-        y_1.setData(0, 0, 0f);
-        y_1.setData(1, 0, 1f);
+        y_1.setData(0, 0, 0);
+        y_1.setData(1, 0, 1);
 
-        y_2.setData(0, 0, 1f);
-        y_2.setData(1, 0, 0f);
+        y_2.setData(0, 0, 1);
+        y_2.setData(1, 0, 0);
 
-        y_3.setData(0, 0, 0f);
-        y_3.setData(1, 0, 1f);
-
-        y_4.setData(0, 0, 1f);
-        y_4.setData(1, 0, 0f);
 
         // minibatches (associate indices of inputs with the expected output they are intended to have)
         Matrix[] mx1 = { x_1, x_2 };
         Matrix[] mx2 = { x_3, x_4, };
-        Matrix[] my = { y_1, x_2 };
+        Matrix[][] trainingData = { mx1, mx2 };
+        Matrix[] my = { y_1, y_2 };
+
+        // Matrix[] batch = { x_1, x_2, x_3, x_4};
 
         // associate all weights, biases and activations with indices in lists
         // this is so we know what layer we are in 
@@ -104,48 +100,70 @@ public class Main {
         Matrix[] biases = { b_1, b_2 };
 
         ArrayList<Matrix> activations = new ArrayList<>();
-        activations.add(x_1);
 
         // lists to hold bias and weight errors for later accumulation and updating 
         ArrayList<Matrix> gradientB = new ArrayList<>();
         ArrayList<Matrix> gradientW = new ArrayList<>();
 
-        // WORKS!!!!!!!!
-        // feeding forward
-        for (int i = 0; i < weights.length; i++) {
-            Matrix mat = forwardPass(weights[i], activations.get(i), biases[i]);
-            mat.print();
-            System.out.println();
-            activations.add(mat);
-        }
-        // backpropagation
-        for (int l = weights.length - 1; l >= 0; l--) {
-            if (l == weights.length - 1) {
-                Matrix biasmat = biasBackpropFinal(activations.get(l + 1), my[l-1]);
-                biasmat.print();
-                System.out.println();
-                Matrix weightmat = weightBackprop(biasmat, activations.get(l));
-                weightmat.print();
-                System.out.println();
-                gradientB.add(biasmat);
-                gradientW.add(weightmat);
-            }
-            else {
-                Matrix matbias = biasBackpropHidden(weights[l + 1], gradientB.get(l), activations.get(l + 1));
-                Matrix weightmat = weightBackprop(matbias, activations.get(l));
-                matbias.print();
-                System.out.println();
-                weightmat.print();
-                System.out.println();
-                gradientW.add(matbias);
-                gradientB.add(weightmat);
+        for (int i = 0; i < trainingData.length; i++) {
+            // accumulators for later updating at the end of the minibatch, corresponding to first and hidden layers
+            Matrix biasError1 = new Matrix(3, 1);
+            Matrix biasError2 = new Matrix(2, 1);
+            Matrix weightError1 = new Matrix(3, 4);
+            Matrix weightError2 = new Matrix(2, 3);
+
+            System.out.println("Minibatch " + (i + 1));
+            Matrix[] minibatch = trainingData[i];
+            for (int j = 0; j < minibatch.length; j++) {
+                System.out.println("Input " + (j + 1));
+                activations.clear();
+                activations.add(minibatch[j]);
+                // feed forward
+                for (int l = 0; l < weights.length; l++) {
+                    System.out.println(l + 1 + " forward pass");
+                    Matrix mat = forwardPass(weights[l], activations.get(l), biases[l]);
+                    mat.print();
+                    System.out.println();
+                    activations.add(mat);
+                }
+                // backprop
+                for (int l = weights.length - 1; l >= 0; l--) {
+                    System.out.println();
+                    System.out.println("Backwards pass through layer" + l);
+                    System.out.println();
+                    if (l == weights.length - 1) {
+                        Matrix biasmat = biasBackpropFinal(activations.get(l + 1), my[l-1]);
+                        System.out.println();
+                        System.out.println("bias gradient: ");
+                        biasmat.print();
+                        System.out.println();
+                        System.out.println("weight gradient: ");
+                        Matrix weightmat = weightsBackprop(biasmat, activations.get(l));
+                        weightmat.print();
+                        gradientB.add(biasmat);
+                        gradientW.add(weightmat);
+                    }
+                    else {
+                        Matrix biasmat = biasBackpropHidden(weights[l + 1], gradientB.get(l), activations.get(l + 1));
+                        System.out.println();
+                        System.out.println("bias gradient: ");
+                        biasmat.print();
+                        Matrix weightmat = weightsBackprop(biasmat, activations.get(l));
+                        System.out.println();
+                        System.out.println("weight gradient: ");
+                        weightmat.print();
+                        System.out.println();
+                        gradientW.add(weightmat);
+                        gradientB.add(biasmat);
+                    }
+                }
             }
         }
     }
 
     // activation function 
-    public static float sigmoid(double z) {
-        return (float) (1 / (1 + Math.pow(Math.E, -z)));
+    public static double sigmoid(double z) {
+        return (1 / (1 + Math.pow(Math.E, -z)));
     }
 
     // calculate activation matrix (forward pass through one layer)
@@ -162,7 +180,7 @@ public class Main {
     }
 
     // WORKS
-    public static Matrix weightBackprop(Matrix bias, Matrix activations) {
+    public static Matrix weightsBackprop(Matrix bias, Matrix activations) {
         // B^l * (A^l-1)^T is what this is performing 
         return bias.multiply(activations.transpose());
     }
