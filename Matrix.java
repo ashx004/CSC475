@@ -1,7 +1,7 @@
 // a Matrix has rows and columns, and can do addition, multiplication, subtraction 
 // hadamard multiplication with other matrices, and can transpose
 public class Matrix {
-    private final float[][] data;
+    private final double[][] data;
     // use these to be able to do addition and multiplication operations easier
     // later
     private final int rows; // represents how many subarrays are in the array
@@ -11,10 +11,10 @@ public class Matrix {
     public Matrix(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
-        data = new float[rows][cols];
+        data = new double[rows][cols];
     }
 
-    public float[][] getData() {
+    public double[][] getData() {
         return this.data;
     }
 
@@ -27,7 +27,7 @@ public class Matrix {
     }
 
     // given two indices and a value, replace the value at (i, j) with the new value
-    public void setData(int i, int j, float value) {
+    public void setData(int i, int j, double value) {
         data[i][j] = value;
     }
 
@@ -126,6 +126,7 @@ public class Matrix {
         }
     }
 
+    // a method to print the contents of a Matrix (use only for debugging and testing)
     public void print() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {

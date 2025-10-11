@@ -97,7 +97,7 @@ public class Main {
         Matrix[] m_1 = {x_1, x_2, y_1, y_2};
         Matrix[] m_2 = {x_3, x_4, y_3, y_4};
 
-        // associate all weights, biases and activations with indices
+        // associate all weights, biases and activations with indices in lists
         // this is so we know what layer we are in 
         ArrayList<Matrix> weights = new ArrayList<>();
         weights.add(w_1);
@@ -109,6 +109,19 @@ public class Main {
 
         ArrayList<Matrix> activations = new ArrayList<>();
         activations.add(x_1);
+
+        // lists to hold bias and weight errors
+        ArrayList<Matrix> gradientB = new ArrayList<>();
+        ArrayList<Matrix> gradientW = new ArrayList<>();
+
+        Matrix mat1 = forwardPass(w_1, x_1, b_1);
+        //mat1.print();
+        Matrix mat2 = forwardPass(w_2, mat1, b_2);
+        // mat2.print();
+        Matrix matback1 = biasBackpropFinal(mat2, y_1);
+        //matback1.print();
+        Matrix matback2 = biasBackpropHidden(w_2, matback1, mat1);
+        matback2.print();
     }
 
     // activation function 
@@ -117,6 +130,7 @@ public class Main {
     }
 
     // calculate activation matrix (forward pass through one layer)
+    // WORKS
     public static Matrix forwardPass(Matrix weights, Matrix oldActivations, Matrix bias) {
         // (W^L * A^(L-1)) + B^L is what this is performing
         Matrix mat = weights.multiply(oldActivations).add(bias);
@@ -126,5 +140,32 @@ public class Main {
             }
         }
         return mat;
+    }
+
+    // WORKS
+    public static Matrix weightBackprop(Matrix bias, Matrix activations) {
+        return bias.multiply(activations.transpose());
+    }
+
+    // WORKS
+    public static Matrix biasBackpropFinal(Matrix acts, Matrix expected) {
+        Matrix one = new Matrix(acts.getRows(), acts.getCols());
+        for (int i = 0; i < acts.getRows(); i++) {
+            for (int j = 0; j < acts.getCols(); j++) {
+                one.setData(i, j, 1);
+            }
+        }
+        return acts.subtract(expected).hadamard(acts).hadamard(one.subtract(acts));
+    }
+
+    // WORKS
+    public static Matrix biasBackpropHidden(Matrix weights, Matrix biasGrad, Matrix acts) {
+        Matrix one = new Matrix(acts.getRows(), acts.getCols());
+        for (int i = 0; i < acts.getRows(); i++) {
+            for (int j = 0; j < acts.getCols(); j++) {
+                one.setData(i, j, 1);
+            }
+        }
+        return weights.transpose().multiply(biasGrad).hadamard(acts).hadamard(one.subtract(acts));
     }
 }
