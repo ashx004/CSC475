@@ -93,35 +93,54 @@ public class Main {
         y_4.setData(0, 0, 1f);
         y_4.setData(1, 0, 0f);
 
-        // minibatches 
-        Matrix[] m_1 = {x_1, x_2, y_1, y_2};
-        Matrix[] m_2 = {x_3, x_4, y_3, y_4};
+        // minibatches (associate indices of inputs with the expected output they are intended to have)
+        Matrix[] mx1 = { x_1, x_2 };
+        Matrix[] mx2 = { x_3, x_4, };
+        Matrix[] my = { y_1, x_2 };
 
         // associate all weights, biases and activations with indices in lists
         // this is so we know what layer we are in 
-        ArrayList<Matrix> weights = new ArrayList<>();
-        weights.add(w_1);
-        weights.add(w_2);
-
-        ArrayList<Matrix> biases = new ArrayList<>();
-        biases.add(b_1);
-        biases.add(b_2);
+        Matrix[] weights = { w_1, w_2 };
+        Matrix[] biases = { b_1, b_2 };
 
         ArrayList<Matrix> activations = new ArrayList<>();
         activations.add(x_1);
 
-        // lists to hold bias and weight errors
-        ArrayList<Matrix> gradientB_w1 = new ArrayList<>();
+        // lists to hold bias and weight errors for later accumulation and updating 
+        ArrayList<Matrix> gradientB = new ArrayList<>();
         ArrayList<Matrix> gradientW = new ArrayList<>();
 
-        Matrix mat1 = forwardPass(w_1, x_1, b_1);
-        //mat1.print();
-        Matrix mat2 = forwardPass(w_2, mat1, b_2);
-        // mat2.print();
-        Matrix matback1 = biasBackpropFinal(mat2, y_1);
-        //matback1.print();
-        Matrix matback2 = biasBackpropHidden(w_2, matback1, mat1);
-        matback2.print();
+        // WORKS!!!!!!!!
+        // feeding forward
+        for (int i = 0; i < weights.length; i++) {
+            Matrix mat = forwardPass(weights[i], activations.get(i), biases[i]);
+            mat.print();
+            System.out.println();
+            activations.add(mat);
+        }
+        // backpropagation
+        for (int l = weights.length - 1; l >= 0; l--) {
+            if (l == weights.length - 1) {
+                Matrix biasmat = biasBackpropFinal(activations.get(l + 1), my[l-1]);
+                biasmat.print();
+                System.out.println();
+                Matrix weightmat = weightBackprop(biasmat, activations.get(l));
+                weightmat.print();
+                System.out.println();
+                gradientB.add(biasmat);
+                gradientW.add(weightmat);
+            }
+            else {
+                Matrix matbias = biasBackpropHidden(weights[l + 1], gradientB.get(l), activations.get(l + 1));
+                Matrix weightmat = weightBackprop(matbias, activations.get(l));
+                matbias.print();
+                System.out.println();
+                weightmat.print();
+                System.out.println();
+                gradientW.add(matbias);
+                gradientB.add(weightmat);
+            }
+        }
     }
 
     // activation function 
