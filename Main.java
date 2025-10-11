@@ -111,7 +111,7 @@ public class Main {
         activations.add(x_1);
 
         // lists to hold bias and weight errors
-        ArrayList<Matrix> gradientB = new ArrayList<>();
+        ArrayList<Matrix> gradientB_w1 = new ArrayList<>();
         ArrayList<Matrix> gradientW = new ArrayList<>();
 
         Matrix mat1 = forwardPass(w_1, x_1, b_1);
@@ -125,7 +125,7 @@ public class Main {
     }
 
     // activation function 
-    public static float sigmoid(float z) {
+    public static float sigmoid(double z) {
         return (float) (1 / (1 + Math.pow(Math.E, -z)));
     }
 
@@ -144,11 +144,13 @@ public class Main {
 
     // WORKS
     public static Matrix weightBackprop(Matrix bias, Matrix activations) {
+        // B^l * (A^l-1)^T is what this is performing 
         return bias.multiply(activations.transpose());
     }
 
     // WORKS
     public static Matrix biasBackpropFinal(Matrix acts, Matrix expected) {
+        // generate matrix full of only one's
         Matrix one = new Matrix(acts.getRows(), acts.getCols());
         for (int i = 0; i < acts.getRows(); i++) {
             for (int j = 0; j < acts.getCols(); j++) {
