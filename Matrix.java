@@ -46,7 +46,7 @@ public class Matrix {
             for (int i = 0; i < this.rows; i++) {
                 // j: iterate across cols
                 for (int j = 0; j < other.cols; j++) {
-                    float sum = 0;
+                    double sum = 0;
                     // k: index to track correllated values
                     // take dot product of row (i) with corresponding column (j), where k is the
                     // index of the elements at each corresponding row or column
