@@ -142,6 +142,7 @@ public class Matrix {
         System.out.println();
     }
 
+    // a method to sum two matrices in-place rather than returning a new one 
     public void sum(Matrix other) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {

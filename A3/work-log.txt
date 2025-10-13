@@ -1,0 +1,1 @@
+10-13-25 10:09 beginning initial setup work for A3. i have reorganized my CSC475 git repo to better keep track of files. I have copied over Matrix.class and Main.java because I want to re-use the same logic and engine made in A2. Going to research some on file i/o and efficient ways to read lots of data fast 
