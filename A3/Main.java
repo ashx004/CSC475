@@ -1,14 +1,23 @@
 /*
  * Name: Ashton Harrell
- * Date: 10/3/2025
- * Description: Small neural network training to get desired outputs. Uses SGD and backpropagation to correct weights and biases
+ * Date: 10/13/2025
+ * Description: Large Neural Network being trained/tested on the MNIST dataset
  */
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Random;
+import java.util.Scanner;
 
 public class Main {
 
     // learning rate 
-    private final static double ETA = 10;
-    private final static double MINIBATCHSIZE = 2;
+    private final static double ETA = 3;
+    // amount of minibatches 
+    private final static int MINIBATCHES = 10;
+    private final static int INPUTSPERBATCH = 6000;
+    // amount of epochs the data will go through
+    private final static int EPOCHS = 30;
 
     public static void main(String[] args) {
         // create weights and biases
@@ -113,69 +122,73 @@ public class Main {
 
         // Main learning loop
         // for 6 epochs...
-        for (int epoch = 1; epoch <= 6; epoch++) {
-            System.out.println("Epoch " + epoch + ":\n");
-            System.out.println("------------------------------------------------------------------------------------------");
+        // for (int epoch = 1; epoch <= EPOCHS; epoch++) {
+        //     System.out.println("Epoch " + epoch + ":\n");
+        //     System.out.println("------------------------------------------------------------------------------------------");
 
-            // for each minibatch in arr1...
-            for (int k = 0; k < arr1.length; k++) {
-                System.out.println("Minibatch" + (k + 1) + ":\n");
+        //     // for each minibatch in arr1...
+        //     for (int k = 0; k < arr1.length; k++) {
+        //         System.out.println("Minibatch" + (k + 1) + ":\n");
 
-                // error accumulators to be used for updating weights and biases after each minibatch iteration
-                // need one for each weight and bias because they will be different shapes => cannot do addition
-                // place them inside the loop instead of outside so they can just be reset upon a full minibatch iteration
-                // so that error does not compound between epochs/minibatches
-                Matrix weightAcc1 = new Matrix(w_1.getRows(), w_1.getCols());
-                Matrix weightAcc2 = new Matrix(w_2.getRows(), w_2.getCols());
-                Matrix[] weightAccArr = {weightAcc1, weightAcc2};
-                Matrix biasAcc1 = new Matrix(b_1.getRows(), b_1.getCols());
-                Matrix biasAcc2 = new Matrix(b_2.getRows(), b_2.getCols());
-                Matrix[] biasAccArr = {biasAcc1, biasAcc2};
+        //         // error accumulators to be used for updating weights and biases after each minibatch iteration
+        //         // need one for each weight and bias because they will be different shapes => cannot do addition
+        //         // place them inside the loop instead of outside so they can just be reset upon a full minibatch iteration
+        //         // so that error does not compound between epochs/minibatches
+        //         Matrix weightAcc1 = new Matrix(w_1.getRows(), w_1.getCols());
+        //         Matrix weightAcc2 = new Matrix(w_2.getRows(), w_2.getCols());
+        //         Matrix[] weightAccArr = {weightAcc1, weightAcc2};
+        //         Matrix biasAcc1 = new Matrix(b_1.getRows(), b_1.getCols());
+        //         Matrix biasAcc2 = new Matrix(b_2.getRows(), b_2.getCols());
+        //         Matrix[] biasAccArr = {biasAcc1, biasAcc2};
 
-                // for each input in minibatch...
-                for (int i = 0; i < arr1[k].length; i++) {
-                    System.out.println("Input" + (i + 1) + "\n");
-                    // forward pass through all layers
-                    // load the proper initial input into this algorithm
-                    activations[0] = arr1[k][i];
-                    for (int l = 0; l < weights.length; l++) {
-                        activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
-                        System.out.println("Activations:\n");
-                        activations[l + 1].print();
-                    }
+        //         // for each input in minibatch...
+        //         for (int i = 0; i < arr1[k].length; i++) {
+        //             System.out.println("Input" + (i + 1) + "\n");
+        //             // forward pass through all layers
+        //             // load the proper initial input into this algorithm
+        //             activations[0] = arr1[k][i];
+        //             for (int l = 0; l < weights.length; l++) {
+        //                 activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
+        //                 System.out.println("Activations:\n");
+        //                 activations[l + 1].print();
+        //             }
 
-                    // for weight gradient, we need the bias gradient from the layer ahead
-                    // use this to store the latest one
-                    Matrix B = null;
-                    for (int l = weights.length - 1; l >= 0; l--) {
-                        // indicates we are in final layer
-                        if (l == weights.length - 1) {
-                            B = backpropBiasFinal(activations[l + 1], arr2[k][i]);
-                            biasAccArr[l].sum(B);
-                            System.out.println("Final layer Bias Gradient:\n");
-                            B.print();
-                            weightAccArr[l].sum(backpropWeight(B, activations[l]));
-                            System.out.println("Weight Gradient:\n");
-                            backpropWeight(B, activations[l]).print();
-                        } // we are in final layer
-                        else {
-                            B = backpropBiasHidden(weights[l + 1], B, activations[l + 1]);
-                            biasAccArr[l].sum(B);
-                            System.out.println("Bias Gradient:\n");
-                            B.print();
-                            weightAccArr[l].sum(backpropWeight(B, activations[l]));
-                            System.out.println("Weight Gradient:\n");
-                            backpropWeight(B, activations[l]).print();
-                        }
-                    }
-                }
-                // update all weights and biases after the minibatch has been processed all the way
-                weights[0] = update(weights[0], weightAccArr[0]);
-                weights[1] = update(weights[1], weightAccArr[1]);
-                biases[0] = update(biases[0], biasAccArr[0]);
-                biases[1] = update(biases[1], biasAccArr[1]);
-            }
-        }
+        //             // for weight gradient, we need the bias gradient from the layer ahead
+        //             // use this to store the latest one
+        //             Matrix B = null;
+        //             for (int l = weights.length - 1; l >= 0; l--) {
+        //                 // indicates we are in final layer
+        //                 if (l == weights.length - 1) {
+        //                     B = backpropBiasFinal(activations[l + 1], arr2[k][i]);
+        //                     biasAccArr[l].sum(B);
+        //                     System.out.println("Final layer Bias Gradient:\n");
+        //                     B.print();
+        //                     weightAccArr[l].sum(backpropWeight(B, activations[l]));
+        //                     System.out.println("Weight Gradient:\n");
+        //                     backpropWeight(B, activations[l]).print();
+        //                 } // we are in final layer
+        //                 else {
+        //                     B = backpropBiasHidden(weights[l + 1], B, activations[l + 1]);
+        //                     biasAccArr[l].sum(B);
+        //                     System.out.println("Bias Gradient:\n");
+        //                     B.print();
+        //                     weightAccArr[l].sum(backpropWeight(B, activations[l]));
+        //                     System.out.println("Weight Gradient:\n");
+        //                     backpropWeight(B, activations[l]).print();
+        //                 }
+        //             }
+        //         }
+        //         // update all weights and biases after the minibatch has been processed all the way
+        //         weights[0] = update(weights[0], weightAccArr[0]);
+        //         weights[1] = update(weights[1], weightAccArr[1]);
+        //         biases[0] = update(biases[0], biasAccArr[0]);
+        //         biases[1] = update(biases[1], biasAccArr[1]);
+        //    }
+        //}
+
+        // Matrix[][] batches = readAndFill(new File("mnist_train.csv"), INPUTSPERBATCH, MINIBATCHES);
+        Matrix mat = genRandomMat(4, 4);
+        mat.print();
     }
 
     // a method to perform the activation function
@@ -229,11 +242,55 @@ public class Main {
         for (int i = 0; i < acc.getRows(); i++) {
             for (int j = 0; j < acc.getCols(); j++) {
                 // scale the accumulator by the learning rate to minibatchsize ratio
-                acc.setData(i, j, acc.getData()[i][j] * (ETA / MINIBATCHSIZE));
+                acc.setData(i, j, acc.getData()[i][j] * (ETA / MINIBATCHES));
             }
         }
         // new weights/biases are the difference of the scaled accumulator, which is in theory the sum of errors
         // across the training cases 
         return old.subtract(acc);
+    }
+
+    // reference: https://www.baeldung.com/java-read-input-character for Scanner logic
+    // another reference: https://docs.oracle.com/javase/8/docs/api/java/util/Scanner.html to see if we can pass a File object 
+    // a method to read in from a given file and fill create batches (a 2d array that holds each of our minibatches, which then hold all of our inputs)
+    public static Matrix[][] readAndFill(File fileName, int inputs, int m) {
+        Matrix[][] batches = new Matrix[m][inputs];
+        try (Scanner scanner = new Scanner(fileName)) {
+            // for each minibatch...
+            for (int i = 0; i < m; i++) {
+                // for each input being placed in the minibatch ...
+                for (int j = 0; j < inputs; j++) {
+                    // predetermined matrix dimensions. could be changed to different sizes
+                    // if a different dimensional configuration is preferred
+                    Matrix mat = new Matrix(784, 1);
+                    if (scanner.hasNext()) {
+                        String[] lineNums = scanner.next().split(",");
+                        // iterate starting at 1 so that the label of each line is not included
+                        for (int k = 1; k < lineNums.length; k++) {
+                            // place at the k - 1 index to offset the indexing above 
+                            // cast string to double after parsing the number to an integer and "normalizing" the value about 255.0 (this division casts it)
+                            mat.setData(k - 1, 0, (Integer.parseInt(lineNums[k]) / 255.0));
+                        }
+                        batches[i][j] = mat;
+                    }
+                }
+            }
+            return batches;
+        }
+        catch (FileNotFoundException e) {
+            return null;
+        }
+    }
+
+    // reference: https://www.geeksforgeeks.org/java/generating-random-numbers-in-java/
+    public static Matrix genRandomMat(int m, int n) {
+        Matrix mat = new Matrix(m, n);
+        Random r = new Random();
+        for (int i = 0; i < mat.getRows(); i++) {
+            for (int j = 0; j < mat.getCols(); j++) {
+                mat.setData(i, j, r.nextDouble());
+            }
+        }
+        return mat;
     }
 }
