@@ -6,119 +6,22 @@
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Random;
 import java.util.Scanner;
+import java.lang.Math;
+
 
 public class Main {
-
     // learning rate 
     private final static double ETA = 3;
     // amount of minibatches 
     private final static int MINIBATCHES = 10;
-    private final static int INPUTSPERBATCH = 6000;
+    // use this for gradient calculations later for eta / m 
+    private final static int MINIBATCHSIZE = 6000;
     // amount of epochs the data will go through
     private final static int EPOCHS = 30;
 
     public static void main(String[] args) {
-        // create weights and biases
-        Matrix w_1 = new Matrix(3, 4);
-        Matrix w_2 = new Matrix(2, 3);
-        Matrix b_1 = new Matrix(3, 1);
-        Matrix b_2 = new Matrix(2, 1);
-
-        // create inputs and outputs
-        Matrix x_1 = new Matrix(4, 1);
-        Matrix x_2 = new Matrix(4, 1);
-        Matrix x_3 = new Matrix(4, 1);
-        Matrix x_4 = new Matrix(4, 1);
-
-        Matrix y_1 = new Matrix(2, 1);
-        Matrix y_2 = new Matrix(2, 1);
-        Matrix y_3 = new Matrix(2, 1);
-        Matrix y_4 = new Matrix(2, 1);
-
-        // fill weights and biases
-        w_1.setData(0, 0, -0.21);
-        w_1.setData(0, 1, 0.72);
-        w_1.setData(0, 2, -0.25);
-        w_1.setData(0, 3, 1);
-
-        w_1.setData(1, 0, -0.94);
-        w_1.setData(1, 1, -0.41);
-        w_1.setData(1, 2, -0.47);
-        w_1.setData(1, 3, 0.63);
-
-        w_1.setData(2, 0, 0.15);
-        w_1.setData(2, 1, 0.55);
-        w_1.setData(2, 2, -0.49);
-        w_1.setData(2, 3, -0.75);
-
-        w_2.setData(0, 0, 0.76);
-        w_2.setData(0, 1, 0.48);
-        w_2.setData(0, 2, -0.73);
-
-        w_2.setData(1, 0, 0.34);
-        w_2.setData(1, 1, 0.89);
-        w_2.setData(1, 2, -0.23);
-
-        b_1.setData(0, 0, 0.1);
-        b_1.setData(1, 0, -0.36);
-        b_1.setData(2, 0, -0.31);
-
-        b_2.setData(0, 0, 0.16);
-        b_2.setData(1, 0, -0.46);
-
-        // fill inputs and outputs
-        x_1.setData(0, 0, 0);
-        x_1.setData(1, 0, 1);
-        x_1.setData(2, 0, 0);
-        x_1.setData(3, 0, 1);
-
-        x_2.setData(0, 0, 1);
-        x_2.setData(1, 0, 0);
-        x_2.setData(2, 0, 1);
-        x_2.setData(3, 0, 0);
-
-        x_3.setData(0, 0, 0);
-        x_3.setData(1, 0, 0);
-        x_3.setData(2, 0, 1);
-        x_3.setData(3, 0, 1);
-
-        x_4.setData(0, 0, 1);
-        x_4.setData(1, 0, 1);
-        x_4.setData(2, 0, 0);
-        x_4.setData(3, 0, 0);
-
-        y_1.setData(0, 0, 0);
-        y_1.setData(1, 0, 1);
-
-        y_2.setData(0, 0, 1);
-        y_2.setData(1, 0, 0);
-
-        y_3.setData(0, 0, 0);
-        y_3.setData(1, 0, 1);
-
-        y_4.setData(0, 0, 1);
-        y_4.setData(1, 0, 0);
-
-        // hold these to associate by index for ease of for loop iteration
-        Matrix[] weights = {w_1, w_2};
-        Matrix[] biases = {b_1, b_2};
-        // for future assignment, this is probably gonna need to be allocated by size instead of by instantiating with elements 
-        Matrix[] activations = {null, null, null};
-
-        // minibatch 1, 2
-        Matrix[] m1 = {x_1, x_2};
-        Matrix[] m2 = {x_3, x_4};
-
-        // associating outputs with their inputs by index to ensure forwardpass and gradient calculations are performed properly
-        // had bad time correlating indices in for loops before doing this. its ugly but easier and safer 
-        Matrix[] my1 = {y_1, y_2,};
-        Matrix[] my2 = {y_3, y_4};
-
-        // will be used to iterate across each minibatch per each epoch
-        Matrix[][] arr1 = {m1, m2};
-        Matrix[][] arr2 = {my1, my2};
+        
 
         // Main learning loop
         // for 6 epochs...
@@ -187,8 +90,10 @@ public class Main {
         //}
 
         // Matrix[][] batches = readAndFill(new File("mnist_train.csv"), INPUTSPERBATCH, MINIBATCHES);
-        Matrix mat = genRandomMat(4, 4);
-        mat.print();
+        Matrix w_1 = genRandomMat(4, 3);
+        Matrix w_2 = genRandomMat(3, 4);
+        Matrix[] inputs = readAndFill(new File("mnist_train.csv"), 60000);
+        Matrix[] acts = getLabelActivations(new File("mnist_train.csv"), 60000);
     }
 
     // a method to perform the activation function
@@ -252,30 +157,41 @@ public class Main {
 
     // reference: https://www.baeldung.com/java-read-input-character for Scanner logic
     // another reference: https://docs.oracle.com/javase/8/docs/api/java/util/Scanner.html to see if we can pass a File object 
-    // a method to read in from a given file and fill create batches (a 2d array that holds each of our minibatches, which then hold all of our inputs)
-    public static Matrix[][] readAndFill(File fileName, int inputs, int m) {
-        Matrix[][] batches = new Matrix[m][inputs];
+    // a method to read in from a given file and return an array of all inputs
+    public static Matrix[] readAndFill(File fileName, int fileSize) {
+        Matrix[] inputs = new Matrix[fileSize];
         try (Scanner scanner = new Scanner(fileName)) {
-            // for each minibatch...
-            for (int i = 0; i < m; i++) {
-                // for each input being placed in the minibatch ...
-                for (int j = 0; j < inputs; j++) {
-                    // predetermined matrix dimensions. could be changed to different sizes
-                    // if a different dimensional configuration is preferred
-                    Matrix mat = new Matrix(784, 1);
-                    if (scanner.hasNext()) {
-                        String[] lineNums = scanner.next().split(",");
-                        // iterate starting at 1 so that the label of each line is not included
-                        for (int k = 1; k < lineNums.length; k++) {
-                            // place at the k - 1 index to offset the indexing above 
-                            // cast string to double after parsing the number to an integer and "normalizing" the value about 255.0 (this division casts it)
-                            mat.setData(k - 1, 0, (Integer.parseInt(lineNums[k]) / 255.0));
-                        }
-                        batches[i][j] = mat;
+            // iterate through every line of the file 
+            for (int i = 0; i < fileSize; i++) {
+                Matrix mat = new Matrix(784, 1);
+                if (scanner.hasNext()) {
+                    String[] vals = scanner.nextLine().split(",");
+                    for (int j = 1; i < vals.length; i++) {
+                        mat.setData(j - 1, 0, Double.parseDouble(vals[j]));
                     }
+                    inputs[i] = mat;
                 }
             }
-            return batches;
+            return inputs;
+        }
+        catch (FileNotFoundException e) {
+            return null;
+        }
+    }
+
+    // a method to convert labels of MNIST data into one hot "vectors"
+    public static Matrix[] getLabelActivations(File fileName, int fileSize) {
+        Matrix[] acts = new Matrix[fileSize];
+        try (Scanner scanner = new Scanner(fileName)) {
+            for (int i = 0; i < acts.length; i++) {
+                Matrix mat = new Matrix(10, 1);
+                if (scanner.hasNext()) {
+                    String label = scanner.nextLine().split(",")[0];
+                    mat.setData(Integer.parseInt(label), 0, 1.0);
+                }
+                acts[i] = mat;
+            }
+            return acts;
         }
         catch (FileNotFoundException e) {
             return null;
@@ -283,12 +199,15 @@ public class Main {
     }
 
     // reference: https://www.geeksforgeeks.org/java/generating-random-numbers-in-java/
+    // reference: https://docs.vultr.com/java/standard-library/java/lang/Math/random (for range scaling)
+    // a method to generate random weights and biases for training
     public static Matrix genRandomMat(int m, int n) {
         Matrix mat = new Matrix(m, n);
-        Random r = new Random();
         for (int i = 0; i < mat.getRows(); i++) {
             for (int j = 0; j < mat.getCols(); j++) {
-                mat.setData(i, j, r.nextDouble());
+                // range scaling so we can actually generate negative doubles < 1 (check reference)
+                // java has no built in method that does this 
+                mat.setData(i, j, Math.random() * 2 - 1);
             }
         }
         return mat;
