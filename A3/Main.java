@@ -6,92 +6,23 @@
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Scanner;
-import java.lang.Math;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
 
 
 public class Main {
     // learning rate 
-    private final static double ETA = 3;
+    private final static double ETA = 5;
     // amount of minibatches 
-    private final static int MINIBATCHES = 10;
+    private final static int MINIBATCHES = 20;
     // use this for gradient calculations later for eta / m 
-    private final static int MINIBATCHSIZE = 6000;
+    private final static int MINIBATCHSIZE = 3000;
     // amount of epochs the data will go through
-    private final static int EPOCHS = 30;
+    private final static int EPOCHS = 50;
 
     public static void main(String[] args) {
-        
-
-        // Main learning loop
-        // for 6 epochs...
-        // for (int epoch = 1; epoch <= EPOCHS; epoch++) {
-        //     System.out.println("Epoch " + epoch + ":\n");
-        //     System.out.println("------------------------------------------------------------------------------------------");
-
-        //     // for each minibatch in arr1...
-        //     for (int k = 0; k < arr1.length; k++) {
-        //         System.out.println("Minibatch" + (k + 1) + ":\n");
-
-        //         // error accumulators to be used for updating weights and biases after each minibatch iteration
-        //         // need one for each weight and bias because they will be different shapes => cannot do addition
-        //         // place them inside the loop instead of outside so they can just be reset upon a full minibatch iteration
-        //         // so that error does not compound between epochs/minibatches
-        //         Matrix weightAcc1 = new Matrix(w_1.getRows(), w_1.getCols());
-        //         Matrix weightAcc2 = new Matrix(w_2.getRows(), w_2.getCols());
-        //         Matrix[] weightAccArr = {weightAcc1, weightAcc2};
-        //         Matrix biasAcc1 = new Matrix(b_1.getRows(), b_1.getCols());
-        //         Matrix biasAcc2 = new Matrix(b_2.getRows(), b_2.getCols());
-        //         Matrix[] biasAccArr = {biasAcc1, biasAcc2};
-
-        //         // for each input in minibatch...
-        //         for (int i = 0; i < arr1[k].length; i++) {
-        //             System.out.println("Input" + (i + 1) + "\n");
-        //             // forward pass through all layers
-        //             // load the proper initial input into this algorithm
-        //             activations[0] = arr1[k][i];
-        //             for (int l = 0; l < weights.length; l++) {
-        //                 activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
-        //                 System.out.println("Activations:\n");
-        //                 activations[l + 1].print();
-        //             }
-
-        //             // for weight gradient, we need the bias gradient from the layer ahead
-        //             // use this to store the latest one
-        //             Matrix B = null;
-        //             for (int l = weights.length - 1; l >= 0; l--) {
-        //                 // indicates we are in final layer
-        //                 if (l == weights.length - 1) {
-        //                     B = backpropBiasFinal(activations[l + 1], arr2[k][i]);
-        //                     biasAccArr[l].sum(B);
-        //                     System.out.println("Final layer Bias Gradient:\n");
-        //                     B.print();
-        //                     weightAccArr[l].sum(backpropWeight(B, activations[l]));
-        //                     System.out.println("Weight Gradient:\n");
-        //                     backpropWeight(B, activations[l]).print();
-        //                 } // we are in final layer
-        //                 else {
-        //                     B = backpropBiasHidden(weights[l + 1], B, activations[l + 1]);
-        //                     biasAccArr[l].sum(B);
-        //                     System.out.println("Bias Gradient:\n");
-        //                     B.print();
-        //                     weightAccArr[l].sum(backpropWeight(B, activations[l]));
-        //                     System.out.println("Weight Gradient:\n");
-        //                     backpropWeight(B, activations[l]).print();
-        //                 }
-        //             }
-        //         }
-        //         // update all weights and biases after the minibatch has been processed all the way
-        //         weights[0] = update(weights[0], weightAccArr[0]);
-        //         weights[1] = update(weights[1], weightAccArr[1]);
-        //         biases[0] = update(biases[0], biasAccArr[0]);
-        //         biases[1] = update(biases[1], biasAccArr[1]);
-        //    }
-        //}
-
         // generate random weights and biases
         Matrix w_1 = genRandomMat(15, 784);
         Matrix b_1 = genRandomMat(15, 1);
@@ -109,29 +40,79 @@ public class Main {
         List<Matrix> inputs = readAndFill(new File("mnist_train.csv"), 60000);
         Matrix[] acts = getLabelActivations(new File("mnist_train.csv"), 60000);
 
-        System.out.println("Inputs size: " + inputs.size());
-        System.out.println("Acts size: " + acts.length);
+        // associate inputs and activations so that they can be randomized together
+        // this is so we can actually classify images properly
+        List<Matrix[]> associatedList = new ArrayList<>();
+        for (int i = 0; i < inputs.size(); i++) {
+            Matrix[] arr = {inputs.get(i), acts[i]};
+            associatedList.add(arr);
+        }
+
         // main training loop 
         // for each epoch
         for (int epoch = 1; epoch <= EPOCHS; epoch++) {
+        // use these arr to count how many of each digit, and whether it was properly classified
+            int[] count = new int[10];
+            int[] properCount = new int[10];
             System.out.println("Epoch " + epoch + ":\n");
             // copy of original list so we do not shuffle the original list (not sure if this is really necessary, will do more testing later)
-            List<Matrix> inputCopy = inputs;
+            List<Matrix[]> trainingData = new ArrayList<>(associatedList);
             // randomize and rebatch training data at the beginning of each epoch for SGD
-            Matrix[][] batches = batch(inputCopy, MINIBATCHES, MINIBATCHSIZE);
-            // for each minibatch
-            for (Matrix[] minibatch : batches) {
+            List<List<Matrix[]>> batches = batch(trainingData, MINIBATCHES, MINIBATCHSIZE);
+            // for each minibatch in batches
+            for (List<Matrix[]> minibatch : batches) {
                 // error accumulators
                 Matrix weightAcc1 = new Matrix(w_1.getRows(), w_1.getCols());
                 Matrix weightAcc2 = new Matrix(w_2.getRows(), w_2.getCols());
                 Matrix biasAcc1 = new Matrix(b_1.getRows(), b_1.getCols());
                 Matrix biasAcc2 = new Matrix(b_2.getRows(), b_2.getCols());
+                Matrix[] weightAccArr = {weightAcc1, weightAcc2};
+                Matrix[] biasAccArr = {biasAcc1, biasAcc2};
 
-                // for each input in minibatch
-                for (Matrix mat : minibatch) {
-
+                // for each input in minibatch (with its associated expected activation/label)
+                int outputIndex = 0;
+                for (Matrix[] mat : minibatch) {
+                    activations[0] = mat[0];
+                    for (int l = 0; l < weights.length; l++) {
+                        activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
+                        outputIndex = argmax(activations[l + 1]);
+                    }
+                    int labelIndex = argmax(mat[1]);
+                    count[labelIndex]++;
+                    if (labelIndex == outputIndex) {
+                        properCount[outputIndex]++;
+                    }
+                    Matrix B = null;
+                    for (int l = weights.length - 1; l >= 0; l--) {
+                        if (l == weights.length - 1) {
+                            B = backpropBiasFinal(activations[l + 1], mat[1]);
+                            biasAccArr[l].sum(B);
+                            weightAccArr[l].sum(backpropWeight(B, activations[l]));
+                        }
+                        else {
+                            B = backpropBiasHidden(weights[l + 1], B, activations[l + 1]);
+                            biasAccArr[l].sum(B);
+                            weightAccArr[l].sum(backpropWeight(B, activations[l]));
+                        }
+                    }
                 }
+                // update weights and biases each minibatch
+                weights[0] = update(weights[0], weightAccArr[0]);
+                weights[1] = update(weights[1], weightAccArr[1]);
+                biases[0] = update(biases[0], biasAccArr[0]);
+                biases[1] = update(biases[1], biasAccArr[1]);
+
             }
+            for (int i = 0; i < count.length; i++) {
+                System.out.println("Digit " + i + ": " + properCount[i] + " / " + count[i] + "\n");
+            }
+            double properSum = 0;
+            double countSum = 0;
+            for (int i = 0; i < count.length; i++) {
+                properSum += (double) properCount[i];
+                countSum += (double) count[i];
+            }
+            System.out.println("Accuracy: " + properSum + "/" + countSum + " = " + (properSum / countSum) * 100 + "\n");
         }
     }
 
@@ -186,7 +167,7 @@ public class Main {
         for (int i = 0; i < acc.getRows(); i++) {
             for (int j = 0; j < acc.getCols(); j++) {
                 // scale the accumulator by the learning rate to minibatchsize ratio
-                acc.setData(i, j, acc.getData()[i][j] * (ETA / MINIBATCHES));
+                acc.setData(i, j, acc.getData()[i][j] * (ETA / MINIBATCHSIZE));
             }
         }
         // new weights/biases are the difference of the scaled accumulator, which is in theory the sum of errors
@@ -208,7 +189,7 @@ public class Main {
                 if (scanner.hasNextLine()) {
                     String[] vals = scanner.nextLine().split(",");
                     for (int j = 1; j < vals.length; j++) {
-                        mat.setData(j - 1, 0, Double.parseDouble(vals[j - 1]));
+                        mat.setData(j - 1, 0, Double.parseDouble(vals[j]) / 255);
                     }
                     inputs.add(mat);
                 }
@@ -254,27 +235,33 @@ public class Main {
         return mat;
     }
 
-    public static Matrix[][] batch(List<Matrix> inputs, int miniNum, int miniSize) {
-        Matrix[][] minibatches = new Matrix[miniNum][miniSize];
-        Collections.shuffle(inputs);
+    // reworked so that it takes paired up 
+    public static List<List<Matrix[]>> batch(List<Matrix[]> pairs, int miniNum, int miniSize) {
+        List<List<Matrix[]>> batches = new ArrayList<>();
+        Collections.shuffle(pairs);
         int index = 0;
-        for (int i = 0; i < minibatches.length; i++) {
-            for (int j = 0; j < minibatches[i].length; j++) {
-                minibatches[i][j] = inputs.get(index);
+        for (int i = 0; i < miniNum; i++) {
+            List<Matrix[]> minibatch = new ArrayList<>();
+            for (int j = 0; j < miniSize; j++) {
+                minibatch.add(pairs.get(index));
                 index++;
             }
+            batches.add(minibatch);
         }
-        return minibatches;
+        return batches;
     }
 
-    // works under the assumptiont hat we are just looking at 10x1 matrices
+    // works under the assumption that we are just looking at 10x1 matrices
+    // a method to return what index the maximum value is at in a given matrix 
     public static int argmax(Matrix mat) {
-        int max = mat.getData()[0][0];
-        for (int i = 1; i < mat.getRows(); i++) {
+        int index = 0;
+        double max = mat.getData()[0][0];
+        for (int i = 0; i < mat.getRows(); i++) {
             if (max < mat.getData()[i][0]) {
                 max = mat.getData()[i][0];
+                index = i;
             }
         }
-        return max;
+        return index;
     }
 }
