@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.lang.Math;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
 
 
 public class Main {
@@ -89,11 +92,47 @@ public class Main {
         //    }
         //}
 
-        // Matrix[][] batches = readAndFill(new File("mnist_train.csv"), INPUTSPERBATCH, MINIBATCHES);
-        Matrix w_1 = genRandomMat(4, 3);
-        Matrix w_2 = genRandomMat(3, 4);
-        Matrix[] inputs = readAndFill(new File("mnist_train.csv"), 60000);
+        // generate random weights and biases
+        Matrix w_1 = genRandomMat(15, 784);
+        Matrix b_1 = genRandomMat(15, 1);
+        Matrix w_2 = genRandomMat(10, 15);
+        Matrix b_2 = genRandomMat(10, 1);
+
+        // batch weights and biases for associated indexing
+        Matrix[] weights = {w_1, w_2};
+        Matrix[] biases = {b_1, b_2};
+
+        // hold activations for each layer as we make forward passes to hold for backprop
+        Matrix[] activations = {null, null, null};
+
+        // get inputs and one hot activation vectors from input file
+        List<Matrix> inputs = readAndFill(new File("mnist_train.csv"), 60000);
         Matrix[] acts = getLabelActivations(new File("mnist_train.csv"), 60000);
+
+        System.out.println("Inputs size: " + inputs.size());
+        System.out.println("Acts size: " + acts.length);
+        // main training loop 
+        // for each epoch
+        for (int epoch = 1; epoch <= EPOCHS; epoch++) {
+            System.out.println("Epoch " + epoch + ":\n");
+            // copy of original list so we do not shuffle the original list (not sure if this is really necessary, will do more testing later)
+            List<Matrix> inputCopy = inputs;
+            // randomize and rebatch training data at the beginning of each epoch for SGD
+            Matrix[][] batches = batch(inputCopy, MINIBATCHES, MINIBATCHSIZE);
+            // for each minibatch
+            for (Matrix[] minibatch : batches) {
+                // error accumulators
+                Matrix weightAcc1 = new Matrix(w_1.getRows(), w_1.getCols());
+                Matrix weightAcc2 = new Matrix(w_2.getRows(), w_2.getCols());
+                Matrix biasAcc1 = new Matrix(b_1.getRows(), b_1.getCols());
+                Matrix biasAcc2 = new Matrix(b_2.getRows(), b_2.getCols());
+
+                // for each input in minibatch
+                for (Matrix mat : minibatch) {
+
+                }
+            }
+        }
     }
 
     // a method to perform the activation function
@@ -158,18 +197,20 @@ public class Main {
     // reference: https://www.baeldung.com/java-read-input-character for Scanner logic
     // another reference: https://docs.oracle.com/javase/8/docs/api/java/util/Scanner.html to see if we can pass a File object 
     // a method to read in from a given file and return an array of all inputs
-    public static Matrix[] readAndFill(File fileName, int fileSize) {
-        Matrix[] inputs = new Matrix[fileSize];
+    public static List<Matrix> readAndFill(File fileName, int fileSize) {
+        // array to hold all inputs 
+        List<Matrix> inputs = new ArrayList<>();
+        // try to open the file 
         try (Scanner scanner = new Scanner(fileName)) {
             // iterate through every line of the file 
             for (int i = 0; i < fileSize; i++) {
                 Matrix mat = new Matrix(784, 1);
-                if (scanner.hasNext()) {
+                if (scanner.hasNextLine()) {
                     String[] vals = scanner.nextLine().split(",");
-                    for (int j = 1; i < vals.length; i++) {
-                        mat.setData(j - 1, 0, Double.parseDouble(vals[j]));
+                    for (int j = 1; j < vals.length; j++) {
+                        mat.setData(j - 1, 0, Double.parseDouble(vals[j - 1]));
                     }
-                    inputs[i] = mat;
+                    inputs.add(mat);
                 }
             }
             return inputs;
@@ -211,5 +252,29 @@ public class Main {
             }
         }
         return mat;
+    }
+
+    public static Matrix[][] batch(List<Matrix> inputs, int miniNum, int miniSize) {
+        Matrix[][] minibatches = new Matrix[miniNum][miniSize];
+        Collections.shuffle(inputs);
+        int index = 0;
+        for (int i = 0; i < minibatches.length; i++) {
+            for (int j = 0; j < minibatches[i].length; j++) {
+                minibatches[i][j] = inputs.get(index);
+                index++;
+            }
+        }
+        return minibatches;
+    }
+
+    // works under the assumptiont hat we are just looking at 10x1 matrices
+    public static int argmax(Matrix mat) {
+        int max = mat.getData()[0][0];
+        for (int i = 1; i < mat.getRows(); i++) {
+            if (max < mat.getData()[i][0]) {
+                max = mat.getData()[i][0];
+            }
+        }
+        return max;
     }
 }
