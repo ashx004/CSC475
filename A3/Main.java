@@ -24,9 +24,12 @@ public class Main {
     private final static int EPOCHS = 50;
 
     public static void main(String[] args) {
-        boolean running = true;
         boolean hasTrained = false;
+        boolean running = true;
         Scanner scanner = new Scanner(System.in);
+        List<Matrix[]> networkData = null;
+        Matrix[] weights = null;
+        Matrix[] biases = null;
         while (running) {
             System.out.println("1. Train the network");
             System.out.println("2. Load a pre-trained network");
@@ -36,31 +39,122 @@ public class Main {
             System.out.println("6. Display the misclassified testing images");
             System.out.println("7. Save the network state to file");
             System.out.println("0. Exit");
-            System.out.println("\n Please enter a number 0-7. 3-7 are only available after using 1. or 2.");
+            System.out.println("\n Please enter a number 0-7. 3-7 are only available after using 1. or 2.\n");
             String input = scanner.next();
+            System.out.println();
             switch (input) {
+                // DONE
                 case "0":
+                    System.out.println("\nGoodbye!\n");
+                    scanner.close();
                     running = false;
+                    break;
+                // DONE
                 case "1":
-                    List<Matrix[]> networkData = trainingLoop(EPOCHS, MINIBATCHSIZE, MINIBATCHES, ETA);
+                    networkData = trainingLoop(EPOCHS, MINIBATCHSIZE, MINIBATCHES, ETA);
                     hasTrained = true;
+                    break;
                 case "2":
-                    // TODO: implement loading/writing to file
+                    // TODO: implement loading to file
+                    break;
+                // DONE
                 case "3":
-                    // TODO: implement network accuracy on training data
-                    // in theory, just print the data stored at index 2 in what is returned by 
+                    if (hasTrained) {
+                        int[] count = new int[10];
+                        int[] properCount = new int[10];
+                        weights = networkData.get(0);
+                        biases = networkData.get(1);
+                        Matrix[] activations = {null, null, null};
+                        List<Matrix> inputs = readAndFill(new File("mnist_train.csv"), 60000);
+                        Matrix[] labels = getLabelActivations(new File("mnist_train.csv"), 60000);
+                        List<Matrix[]> list = new ArrayList<>();
+                        for (int i = 0; i < inputs.size(); i++) {
+                            Matrix[] arr = {inputs.get(i), labels[i]};
+                            list.add(arr);
+                        }
+                        for (int i = 0; i < list.size(); i++) {
+                            activations[0] = list.get(i)[0];
+                            int outputIndex = 0;
+                            for (int l = 0; l < weights.length; l++) {
+                                activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
+                                outputIndex = argmax(activations[l + 1]);
+                            }
+                            int labelIndex = argmax(list.get(i)[1]);
+                            if (outputIndex == labelIndex) {
+                                properCount[outputIndex]++;
+                            }
+                            count[labelIndex]++;
+                        }
+                        double sum = 0;
+                        double properSum = 0;
+                        for (int i = 0; i < count.length; i++) {
+                            sum += count[i];
+                            properSum += properCount[i];
+                        }
+                        for (int i = 0; i < count.length; i++) {
+                            System.out.println("Digit " + i + ": " + count[i] + "/" + properCount[i]);
+                        }
+                        System.out.println("Network accuracy: " + (properSum / sum) * 100 + "%\n");
+                    }
+                    else {
+                        System.out.println("No network data to use!");
+                    }
+                    break;
+                // HERE
                 case "4":
-                    // TODO: implement network accuracy on testing data
+                    if (hasTrained) {
+                        int[] count = new int[10];
+                        int[] properCount = new int[10];
+                        weights = networkData.get(0);
+                        biases = networkData.get(1);
+                        Matrix[] activations = {null, null, null};
+                        List<Matrix> inputs = readAndFill(new File("mnist_test.csv"), 10000);
+                        Matrix[] labels = getLabelActivations(new File("mnist_test.csv"), 10000);
+                        List<Matrix[]> list = new ArrayList<>();
+                        for (int i = 0; i < inputs.size(); i++) {
+                            Matrix[] arr = {inputs.get(i), labels[i]};
+                            list.add(arr);
+                        }
+                        for (int i = 0; i < list.size(); i++) {
+                            activations[0] = list.get(i)[0];
+                            int outputIndex = 0;
+                            for (int l = 0; l < weights.length; l++) {
+                                activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
+                                outputIndex = argmax(activations[l + 1]);
+                            }
+                            int labelIndex = argmax(list.get(i)[1]);
+                            if (outputIndex == labelIndex) {
+                                properCount[outputIndex]++;
+                            }
+                            count[labelIndex]++;
+                        }
+                        double sum = 0;
+                        double properSum = 0;
+                        for (int i = 0; i < count.length; i++) {
+                            sum += count[i];
+                            properSum += properCount[i];
+                        }
+                        for (int i = 0; i < count.length; i++) {
+                            System.out.println("Digit " + i + ": " + count[i] + "/" + properCount[i]);
+                        }
+                        System.out.println("\nNetwork accuracy: " + (properSum / sum) * 100 + "%\n");
+                    }
+                    else {
+                        System.out.println("No network data to use!");
+                    }
+                    break;
                 case "5":
                     // TODO: run network on testing data
                     // TODO: implement ASCII art method (somehow with matrix stuff);
+                    break;
                 case "6":
                     // TODO: Display misclassified testing images
+                    break;
                 case "7":
                     // TODO: save returned weights and biases to a file
+                    break;
             }
         }
-        scanner.close();
         // List<Matrix[]> trained = trainingLoop(EPOCHS, MINIBATCHSIZE, MINIBATCHES, ETA);
     }
 
@@ -294,7 +388,6 @@ public class Main {
                 weights[1] = update(weights[1], weightAccArr[1]);
                 biases[0] = update(biases[0], biasAccArr[0]);
                 biases[1] = update(biases[1], biasAccArr[1]);
-
             }
             for (int i = 0; i < count.length; i++) {
                 System.out.println("Digit " + i + ": " + properCount[i] + " / " + count[i] + "\n");
@@ -309,17 +402,26 @@ public class Main {
                 countArr[0] = new Matrix(1, 1);
                 countArr[0].setData(0, 0, (properSum / countSum) * 100);
             }
-            System.out.println("Accuracy: " + properSum + "/" + countSum + " = " + (properSum / countSum) * 100 + "\n");
+            System.out.println("Accuracy: " + properSum + "/" + countSum + " = " + (properSum / countSum) * 100 + "%\n");
         }
         List<Matrix[]> list = new ArrayList<>();
+        // network data that will be important to use for testing and network accuracy use later 
         list.add(weights);
         list.add(biases);
-        list.add(countArr);
         return list;
     }
 
-    // TODO: implement testing loop logic 
-    public static List<Matrix[]> testingLoop(List<Matrix[]> networkData, File fileName, ) {
-
+    public static Matrix convertMatrix(int m, int n, Matrix other) {
+        if (other.getRows() % m == 0 && other.getRows() % n == 0) {
+            int index = 0;
+            Matrix mat = new Matrix(m, n);
+            for (int i = 0; i < other.getRows(); i++) {
+                for (int j = 0; j < other.getCols(); j++) {
+                    other.setData(i, j, mat.getData()[index][0]);
+                }
+            }
+            return mat;
+        }
+        return null;
     }
 }
