@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.io.IOException;
+import java.io.FileWriter;
 
 
 public class Main {
@@ -21,15 +23,15 @@ public class Main {
     // use this for gradient calculations later for eta / m 
     private final static int MINIBATCHSIZE = 1000;
     // amount of epochs the data will go through
-    private final static int EPOCHS = 50;
+    private final static int EPOCHS = 35;
 
     public static void main(String[] args) {
         boolean hasTrained = false;
         boolean running = true;
         Scanner scanner = new Scanner(System.in);
-        List<Matrix[]> networkData = null;
-        Matrix[] weights = null;
-        Matrix[] biases = null;
+        List<Matrix[]> networkData = new ArrayList<>();
+        Matrix[] weights = {null, null};
+        Matrix[] biases = {null, null};
         while (running) {
             System.out.println("1. Train the network");
             System.out.println("2. Load a pre-trained network");
@@ -55,7 +57,12 @@ public class Main {
                     hasTrained = true;
                     break;
                 case "2":
-                    // TODO: implement loading to file
+                    // DONE
+                    Matrix[] loadedWeights = loadFromFile(new File("weights.csv"), 2);
+                    Matrix[] loadedBiases = loadFromFile(new File("biases.csv"), 2);
+                    networkData.add(loadedWeights);
+                    networkData.add(loadedBiases);
+                    hasTrained = true;
                     break;
                 // DONE
                 case "3":
@@ -88,11 +95,13 @@ public class Main {
                         double sum = 0;
                         double properSum = 0;
                         for (int i = 0; i < count.length; i++) {
+                            System.out.println(count[i]);
+                            System.out.println(properCount[i]);
                             sum += count[i];
                             properSum += properCount[i];
                         }
                         for (int i = 0; i < count.length; i++) {
-                            System.out.println("Digit " + i + ": " + count[i] + "/" + properCount[i]);
+                            System.out.println("Digit " + i + ": " + properCount[i] + "/" + count[i]);
                         }
                         System.out.println("Network accuracy: " + (properSum / sum) * 100 + "%\n");
                     }
@@ -151,7 +160,11 @@ public class Main {
                     // TODO: Display misclassified testing images
                     break;
                 case "7":
-                    // TODO: save returned weights and biases to a file
+                    if (hasTrained) {
+                        // TODO: save returned weights and biases to a file
+                        writeToFile(new File("weights.csv"), weights);
+                        writeToFile(new File("biases.csv"), biases);
+                    }
                     break;
             }
         }
@@ -424,4 +437,62 @@ public class Main {
         }
         return null;
     }
+
+    // a method to save network data to a file 
+    public static void writeToFile(File fileName, Matrix[] mats) {
+        if (!fileName.exists()) {
+            try {
+                fileName.createNewFile();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try (FileWriter writer = new FileWriter(fileName)) {
+            String str = new String();
+            for (Matrix mat: mats) {
+                str += mat.getRows() + "," + mat.getCols() + ",";
+                for (int i = 0; i < mat.getRows(); i++) {
+                    for (int j = 0; j < mat.getCols(); j++) {
+                        str += mat.getData()[i][j];
+                        if (i != mat.getRows() * mat.getCols() - 1) {
+                            str += ",";
+                        }
+                    }
+                }
+                str += "\n";
+            }
+            writer.write(str);
+            writer.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Matrix[] loadFromFile(File fileName, int fileSize) {
+        Matrix[] mats = new Matrix[fileSize];
+        try (Scanner scanner = new Scanner(fileName)) {
+        // iterate through every line of the file 
+        for (int i = 0; i < fileSize; i++) {
+            if (scanner.hasNextLine()) {
+                String[] vals = scanner.nextLine().split(",");
+                Matrix mat = new Matrix(Integer.parseInt(vals[0]), Integer.parseInt(vals[1]));
+                int index = 2;
+                for (int j = 0; j < mat.getRows(); j++) {
+                    for (int k = 0; k < mat.getCols(); k++) {
+                        mat.setData(j, k, Double.parseDouble(vals[index]) / 255);
+                        index++;
+                    }
+                }
+                mats[i] = mat;
+            }
+        }
+        return mats;
+        }
+        catch (FileNotFoundException e) {
+            return null;
+        }
+    }
 }
+
