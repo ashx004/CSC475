@@ -2,8 +2,10 @@
  * Name: Ashton Harrell
  * Date: 10/13/2025
  * Description: Large Neural Network being trained/tested on the MNIST dataset
+ * Neural Network Name (SHOUTOUT DECLAN JOHNSON BOOTH FR ONG): Digit Encoding and Classification Learning Artificial Network (or, D.E.C.L.A.N., for short)
  */
 
+// imports
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -15,7 +17,8 @@ import java.io.FileWriter;
 
 
 public class Main {
-    // constants for this specific network
+    // constants for this specific network. if you change these you must take into consideration the methods being called to ensure these constants are being used properly
+    // very brittle network ngl lol
     // learning rate 
     private final static double ETA = 2.8;
     // amount of minibatches 
@@ -26,13 +29,19 @@ public class Main {
     private final static int EPOCHS = 35;
 
     public static void main(String[] args) {
+        // flags for our main loop to ensure logical flow is achieved
         boolean hasTrained = false;
         boolean running = true;
         Scanner scanner = new Scanner(System.in);
+
+        // structures to hold networkData with training/testing runs
         List<Matrix[]> networkData = new ArrayList<>();
         Matrix[] weights = {null, null};
         Matrix[] biases = {null, null};
+
+        // main menu loop
         while (running) {
+            // main menu text prompts
             System.out.println("1. Train the network");
             System.out.println("2. Load a pre-trained network");
             System.out.println("3. Display network accuracy on training data");
@@ -44,73 +53,96 @@ public class Main {
             System.out.println("\n Please enter a number 0-7. 3-7 are only available after using 1. or 2.\n");
             String input = scanner.next();
             System.out.println();
+
+            // process actions based on user input
             switch (input) {
-                // DONE
+                // user wants to quit
                 case "0":
                     System.out.println("\nGoodbye!\n");
                     scanner.close();
                     running = false;
                     break;
-                // DONE
+                // user wants to train a new network
                 case "1":
                     networkData = trainingLoop(EPOCHS, MINIBATCHSIZE, MINIBATCHES, ETA);
+                    // toggle this flag so we can do actions 3-7
                     hasTrained = true;
                     break;
+                // DONE
                 case "2":
-                    // DONE
+                    // user wants to load network data from files in the given directory
+                    // works on the assumption that we previously have a file with given weights and biases
                     Matrix[] loadedWeights = loadFromFile(new File("weights.csv"), 2);
                     Matrix[] loadedBiases = loadFromFile(new File("biases.csv"), 2);
                     networkData.add(loadedWeights);
                     networkData.add(loadedBiases);
                     hasTrained = true;
                     break;
-                // DONE
+                // user wants to test trained/pre-trained network on training data for accuracy 
                 case "3":
+                    // we can only do any of the cases below if this flag is true (must have data to work with already) 
                     if (hasTrained) {
+                        // allocate these arrays to increment indices to show which element has been processed and/or correctly identified
+                        // count is for all elements, properCount is for elements that are correctly identified
                         int[] count = new int[10];
                         int[] properCount = new int[10];
+
+                        // grab network data and allocate activations so we can perform forward passes
                         weights = networkData.get(0);
                         biases = networkData.get(1);
                         Matrix[] activations = {null, null, null};
+
+                        // grab training data
                         List<Matrix> inputs = readAndFill(new File("mnist_train.csv"), 60000);
                         Matrix[] labels = getLabelActivations(new File("mnist_train.csv"), 60000);
+                        
+                        // list to hold training data so we can group inputs with their intended labels (similar logic as in batch())
                         List<Matrix[]> list = new ArrayList<>();
                         for (int i = 0; i < inputs.size(); i++) {
                             Matrix[] arr = {inputs.get(i), labels[i]};
                             list.add(arr);
                         }
+                        // iterate across training data 
                         for (int i = 0; i < list.size(); i++) {
+                            // list.get(i)[0] is the input stored for the current forwardPass
                             activations[0] = list.get(i)[0];
+                            // hold index of the final layer activations to be argmax'd and compared with the labelIndex
                             int outputIndex = 0;
+                            // standard forwardpass logic
                             for (int l = 0; l < weights.length; l++) {
                                 activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
                                 outputIndex = argmax(activations[l + 1]);
                             }
                             int labelIndex = argmax(list.get(i)[1]);
+                            // increment count regardless and increment properCount at the index iff the network got it correct
                             if (outputIndex == labelIndex) {
                                 properCount[outputIndex]++;
                             }
                             count[labelIndex]++;
                         }
+                        // sum holders for network accuracy calculations
                         double sum = 0;
                         double properSum = 0;
                         for (int i = 0; i < count.length; i++) {
-                            System.out.println(count[i]);
-                            System.out.println(properCount[i]);
                             sum += count[i];
                             properSum += properCount[i];
                         }
+                        // print digit statistics 
                         for (int i = 0; i < count.length; i++) {
                             System.out.println("Digit " + i + ": " + properCount[i] + "/" + count[i]);
                         }
+                        // print network statistics
                         System.out.println("Network accuracy: " + (properSum / sum) * 100 + "%\n");
                     }
+                    // 
                     else {
                         System.out.println("No network data to use!");
                     }
                     break;
-                // HERE
+
+                // user wants to run network on testing data 
                 case "4":
+                    // exact same logic as case "3", just uses different inputs and labels
                     if (hasTrained) {
                         int[] count = new int[10];
                         int[] properCount = new int[10];
@@ -152,13 +184,171 @@ public class Main {
                         System.out.println("No network data to use!");
                     }
                     break;
+
+                // user wants to see ASCII displays of all images from the testing data
                 case "5":
-                    // TODO: run network on testing data
-                    // TODO: implement ASCII art method (somehow with matrix stuff);
+                    if (hasTrained) {
+                        // grab normal network testing necessary data
+                        weights = networkData.get(0);
+                        biases = networkData.get(1);
+                        Matrix[] activations = {null, null, null};
+                        List<Matrix> inputs = readAndFill(new File("mnist_test.csv"), 10000);
+                        Matrix[] labels = getLabelActivations(new File("mnist_test.csv"), 10000);
+                        List<Matrix[]> list = new ArrayList<>();
+
+                        // hold this so we do not iterate over our amount of training data. also used for printing stuff
+                        int count = 0;
+                        for (int i = 0; i < inputs.size(); i++) {
+                            Matrix[] arr = {inputs.get(i), labels[i]};
+                            list.add(arr);
+                        }
+                        while (count < 10000) {
+                            // flag so we can break out of these loops and switch statement back to the main menu loop 
+                            boolean all_running = true;
+                            while (all_running) {
+                                for (int i = 0; i < list.size(); i++) {
+                                    activations[0] = list.get(i)[0];
+                                    int outputIndex = 0;
+                                    for (int l = 0; l < weights.length; l++) {
+                                        activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
+                                        outputIndex = argmax(activations[l + 1]);
+                                    }
+                                    count++;
+                                    int labelIndex = argmax(list.get(i)[1]);
+                                    Matrix mat = convertMatrix(28, 28, activations[0]);
+                                    System.out.print("Testing case #" + count + ":\t" + "Correct Classification = " + labelIndex + " Network output = " + outputIndex);
+                                    if (outputIndex == labelIndex) {
+                                        System.out.println(" Correct.");
+                                    }
+                                    else {
+                                        System.out.println(" Incorrect.");
+                                    }
+                                    // iterate across the current matrix elements
+                                    for (int j = 0; j < mat.getRows(); j++) {
+                                        for (int k = 0; k < mat.getCols(); k++) {
+                                            // grab the greyscale value we are currently looking at 
+                                            double shade = mat.getData()[j][k];
+                                            // run it through these conditionals to see what value will be printed for it, based on how close it is to 1 and how dark it should be 
+                                            if (shade == 0) {
+                                                System.out.print(" ");
+                                            }
+                                            else if (shade > 0 && shade <= 0.2) {
+                                                System.out.print(".");
+                                            }
+                                            else if (shade > 0.2 && shade <= 0.4) {
+                                                System.out.print("!");
+                                            }
+                                            else if (shade > 0.4 && shade <= 0.6) {
+                                                System.out.print("K");
+                                            }
+                                            else if (shade > 0.6 && shade <= 0.8) {
+                                                System.out.print("%");
+                                            }
+                                            else {
+                                                System.out.print("@");
+                                            }
+                                        }
+                                        System.out.println();
+                                    }
+                                    System.out.println("Enter 1 to continue. All other values go back to the main menu ");
+                                    String all_input = scanner.next();
+                                    if (!all_input.equals("1")) {
+                                        all_running = false;
+                                        // break that cascades us out. probably better way to do this but ez to envision
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            break;
+                        }
+                        break;
+                    }
                     break;
+
+                // user wants to see ASCII displays of misclassified images
                 case "6":
-                    // TODO: Display misclassified testing images
+                    // identical logic
+                    if (hasTrained) {
+                        weights = networkData.get(0);
+                        biases = networkData.get(1);
+                        Matrix[] activations = {null, null, null};
+                        List<Matrix> inputs = readAndFill(new File("mnist_test.csv"), 10000);
+                        Matrix[] labels = getLabelActivations(new File("mnist_test.csv"), 10000);
+                        List<Matrix[]> list = new ArrayList<>();
+                        int count = 0;
+
+                        // pair inputs and labels
+                        for (int i = 0; i < inputs.size(); i++) {
+                            Matrix[] arr = {inputs.get(i), labels[i]};
+                            list.add(arr);
+                        }
+
+                        // main display loop
+                        while (count < 10000) {
+                            boolean all_running = true;
+
+                            while (all_running) {
+                                for (int i = 0; i < list.size(); i++) {
+                                    activations[0] = list.get(i)[0];
+                                    int outputIndex = 0;
+
+                                    // forward pass
+                                    for (int l = 0; l < weights.length; l++) {
+                                        activations[l + 1] = forwardPass(weights[l], activations[l], biases[l]);
+                                        outputIndex = argmax(activations[l + 1]);
+                                    }
+
+                                    count++;
+                                    int labelIndex = argmax(list.get(i)[1]);
+
+                                    // only show misclassified images by checking if outputLabel is not equivalent to labelIndex
+                                    if (outputIndex != labelIndex) {
+                                        Matrix mat = convertMatrix(28, 28, activations[0]);
+                                        System.out.print("Testing case #" + count + ":\t" +
+                                            "Correct Classification = " + labelIndex +
+                                            " Network output = " + outputIndex + " Incorrect.\n");
+
+                                        for (int j = 0; j < mat.getRows(); j++) {
+                                            for (int k = 0; k < mat.getCols(); k++) {
+                                                double shade = mat.getData()[j][k];
+                                                if (shade == 0) {
+                                                    System.out.print(" ");
+                                                } else if (shade > 0 && shade <= 0.2) {
+                                                    System.out.print(".");
+                                                } else if (shade > 0.2 && shade <= 0.4) {
+                                                    System.out.print("!");
+                                                } else if (shade > 0.4 && shade <= 0.6) {
+                                                    System.out.print("K");
+                                                } else if (shade > 0.6 && shade <= 0.8) {
+                                                    System.out.print("%");
+                                                } else {
+                                                    System.out.print("@");
+                                                }
+                                            }
+                                            System.out.println();
+                                        }
+
+                                        System.out.println("Enter 1 to continue. All other values go back to the main menu ");
+                                        String all_input = scanner.next();
+
+                                        if (!all_input.equals("1")) {
+                                            all_running = false;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // break out of inner while loop when finished
+                                break;
+                            }
+                            // break out of outer while loop after completion
+                            break;
+                        }
+                    }
                     break;
+
+                // user wants to save network data to file(s)
                 case "7":
                     if (hasTrained) {
                         // TODO: save returned weights and biases to a file
@@ -168,7 +358,6 @@ public class Main {
                     break;
             }
         }
-        // List<Matrix[]> trained = trainingLoop(EPOCHS, MINIBATCHSIZE, MINIBATCHES, ETA);
     }
 
     // a method to perform the activation function
@@ -290,15 +479,18 @@ public class Main {
         return mat;
     }
 
-    // reworked so that it takes paired up 
-    public static List<List<Matrix[]>> batch(List<Matrix[]> pairs, int miniNum, int miniSize) {
+    // a method to return batched data that is organized by (input Matrix, label Matrix) and is shuffled 
+    // this is so we dont lose data when we need to randomize the data after every minibatch 
+    public static List<List<Matrix[]>> batch(List<Matrix[]> data, int miniNum, int miniSize) {
         List<List<Matrix[]>> batches = new ArrayList<>();
-        Collections.shuffle(pairs);
+        // randomize data
+        Collections.shuffle(data);
         int index = 0;
         for (int i = 0; i < miniNum; i++) {
             List<Matrix[]> minibatch = new ArrayList<>();
+            // batching data into minibatches
             for (int j = 0; j < miniSize; j++) {
-                minibatch.add(pairs.get(index));
+                minibatch.add(data.get(index));
                 index++;
             }
             batches.add(minibatch);
@@ -424,22 +616,29 @@ public class Main {
         return list;
     }
 
+    // a method to "convert" a matrix from its current dimensions to new ones 
     public static Matrix convertMatrix(int m, int n, Matrix other) {
+        // ensure that the original matrix can be scaled by checking if the division yields no remainder
         if (other.getRows() % m == 0 && other.getRows() % n == 0) {
             int index = 0;
             Matrix mat = new Matrix(m, n);
-            for (int i = 0; i < other.getRows(); i++) {
-                for (int j = 0; j < other.getCols(); j++) {
-                    other.setData(i, j, mat.getData()[index][0]);
+            for (int i = 0; i < mat.getRows(); i++) {
+                for (int j = 0; j < mat.getCols(); j++) {
+                    mat.setData(i, j, other.getData()[index][0]);
+                    index++;
                 }
             }
             return mat;
         }
+        // if the new dimensions dont work, we dont want to give something that will break other operations
+        // also good indicator for potential debugging
         return null;
     }
 
     // a method to save network data to a file 
+    // reference: File and FileWriter java docs from Oracle
     public static void writeToFile(File fileName, Matrix[] mats) {
+        // create the file if it does not already exist
         if (!fileName.exists()) {
             try {
                 fileName.createNewFile();
@@ -448,6 +647,7 @@ public class Main {
                 e.printStackTrace();
             }
         }
+        // concatenate everything into a big string for each Matrix in mats and then write it to the file
         try (FileWriter writer = new FileWriter(fileName)) {
             String str = new String();
             for (Matrix mat: mats) {
@@ -470,21 +670,29 @@ public class Main {
         }
     }
 
+    // a method to load weights and biases from a given file
     public static Matrix[] loadFromFile(File fileName, int fileSize) {
         Matrix[] mats = new Matrix[fileSize];
         try (Scanner scanner = new Scanner(fileName)) {
         // iterate through every line of the file 
         for (int i = 0; i < fileSize; i++) {
+            // very similar logic to readAndFill()
             if (scanner.hasNextLine()) {
                 String[] vals = scanner.nextLine().split(",");
+                // weights.csv and biases.csv first two values are the rows and cols of the Matrix we need to make. allows us to not have to pass flags on 
+                // whether we want to make a weight or bias matrix (bc they are different sizes)
                 Matrix mat = new Matrix(Integer.parseInt(vals[0]), Integer.parseInt(vals[1]));
+                // start at 2 to offset the actual values we care about pushing
                 int index = 2;
+                // iterate through the matrix
                 for (int j = 0; j < mat.getRows(); j++) {
                     for (int k = 0; k < mat.getCols(); k++) {
-                        mat.setData(j, k, Double.parseDouble(vals[index]) / 255);
+                        // convert the value stored at the index to a double
+                        mat.setData(j, k, Double.parseDouble(vals[index]));
                         index++;
                     }
                 }
+                // append it to the returned matrix array
                 mats[i] = mat;
             }
         }
@@ -495,4 +703,3 @@ public class Main {
         }
     }
 }
-
