@@ -142,7 +142,7 @@ class Board {
                             // so we dont recheck the boundary piece we found
                             adjRowIndex -= i;
                             adjColIndex -= j;
-                            // walk backward down the path and accumulate all pieces in between our placed piece and our colored pieces
+                            // walk in reverse back down the path and accumulate all pieces in between our placed piece and our colored pieces
                             while (adjRowIndex != row || adjColIndex != col) {
                                 list.add(board[adjRowIndex][adjColIndex]);
                                 adjRowIndex -= i;
@@ -156,11 +156,12 @@ class Board {
                 }
             }
         }
+        // flip every piece we encountered that needed to be flipped (in all directions)
         for (Piece p : list) {
             p.flip();
         }
     }
-    // checks to see if any legal moves exist
+    // checks to see if any legal moves exist for a specific player
     private boolean checkMovesExist(Piece piece) {
         int legalMoveCount = 0;
         for (int i = 0 ; i < board.length; i++) {
@@ -170,12 +171,15 @@ class Board {
                 }
             }
         }
+        // if any legal move exists for our color, this will return true
         return legalMoveCount > 0;
     }
     
-    private boolean checkAnyMovesExist() {
+    // checks to see if either player can make a move (which signals the end of a game if not)
+    private boolean isGameOver() {
         int legalWhiteCount = 0;
         int legalBlackCount = 0;
+        // iterate across the entire board and check every square to see if at least one legal move exists at that space 
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 if (checkMoveLegality(i, j, new Piece(true))) {
@@ -186,14 +190,20 @@ class Board {
                 }
             }
         }
-        return legalWhiteCount > 0 || legalBlackCount > 0;
+        // if any legal move exists, this will return false (which means the game should continue)
+        // if no moves exist, the false will be negated and that means the game is over 
+        return !(legalWhiteCount > 0 || legalBlackCount > 0);
     }
 
-    private void gameOver() {
-        int whiteScore = 0;
+    // a method to find who won
+    // 1 -> white winner
+    // -1 -> black winner
+    // 0 -> tie game
+    private int findWinner() {
         int blackScore = 0;
+        int whiteScore = 0;
         for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board.length; j++) {
+            for (int j = 0 ; j < board.length; j++) {
                 if (board[i][j] == null) {
                     continue;
                 }
@@ -204,16 +214,42 @@ class Board {
                     blackScore++;
                 }
             }
-        }
-        System.out.println("White score: " + whiteScore);
-        System.out.println("Black score: " + blackScore);
+        } 
         if (whiteScore > blackScore) {
-            System.out.println("White is the winner!");
+            return 1;
+        }
+        else if (blackScore > whiteScore) {
+            return -1;
         }
         else {
-            System.out.println("Black is the winner!");
+            return 0;
         }
     }
+
+    // a function to find our heuristic value, which is that having more pieces of your color is good
+    public int heuristic(boolean color) {
+        int difference = 0;
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board.length; j++) {
+                if (board[i][j] == null) {
+                    continue;
+                }
+                if (board[i][j].color == color) {
+                    difference++;
+                }
+                else {
+                    difference--;
+                }
+            }
+        }
+        return difference; 
+    }
+
+    public int minimax(Board state, int dept, boolean maximizingPlayer, boolean color) {
+        if (depth == 0 || state.gameOver())
+    }
+
+    
     public void mainLoop() {
         clear();
         // clear the board (just in case)
@@ -234,6 +270,7 @@ class Board {
         boolean curPlayer = false; // true = white, false = black
         int whiteScore = 0;
         int blackScore = 0;
+        // gameplay loop
         while (running) {
             printBoard();
             Piece piece = new Piece(curPlayer);
@@ -255,17 +292,19 @@ class Board {
                 System.out.print("Black's turn: where do you want to place? ");
             }
             String input = scanner.nextLine().trim();
+            // all valid inputs should be of length 2
             if (input.length() != 2) {
                 clear();
-                System.out.println("Please enter a valid input!\nCombinations of (A-H)(1-8) are valid inputs. Ex: A4, B7, ...");
+                System.out.println("Please enter a valid input!\nCombinations of (A-H)(1-8) are valid inputs. Ex: A4, B7, ... Invalid move: " + input);
                 continue;
             }
-            // convert strings to integers
+            // convert chars to ints
             int col = (int) (Character.toUpperCase(input.charAt(0)) - 'A');
             int row = (int) (input.charAt(1) - '1');
+            // input validation
             if (row < 0 || row >= board.length || col < 0 || col >= board.length) {
                 clear();
-                System.out.println("Please enter a valid input! Combinations of (A-H)(1-8) are valid inputs. Ex: A4, B7, ...");
+                System.out.println("Please enter a valid input! Combinations of (A-H)(1-8) are valid inputs. Ex: A4, B7, ... Invalid move: " + input);
                 continue;
             }
             if (checkMoveLegality(row, col, piece)) {
@@ -273,12 +312,12 @@ class Board {
             }
             else {
                 clear();
-                System.out.println("Illegal move! Moves must outflank at least ONE of your opponent's pieces!");
+                System.out.println("Illegal move! Moves must outflank at least ONE of your opponent's pieces! Invalid move: " + input);
                 continue;
             }
             // flip player at the end of each turn
             // we only flip the player (and hit the end of the turn)
-            // when a move is considered legal and is properly performed
+            // when a move is considered legal and is properly performed so that someone who CAN perform a turn MUST perform a legal move in that turn
             curPlayer = !curPlayer;
             clear();
         }
