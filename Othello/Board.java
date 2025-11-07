@@ -215,6 +215,8 @@ class Board {
                 }
             }
         } 
+        System.out.println("White score: " + whiteScore);
+        System.out.println("Black score: " + blackScore);
         if (whiteScore > blackScore) {
             return 1;
         }
@@ -224,6 +226,17 @@ class Board {
         else {
             return 0;
         }
+    }
+
+    // a function to copy over the contents of a Board to a new object
+    public Board copy() {
+        Board newBoard = new Board();
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board.length; j++) {
+                newBoard.board[i][j] = new Piece(board[i][j].color);
+            }
+        }
+        return newBoard;
     }
 
     // a function to find our heuristic value, which is that having more pieces of your color is good
@@ -245,13 +258,57 @@ class Board {
         return difference; 
     }
 
-    public int minimax(Board state, int dept, boolean maximizingPlayer, boolean color) {
-        if (depth == 0 || state.gameOver())
+    // a method to perform minimax search. takes in a Board, a depth, a flag for whether to min or max, and a color to
+    // perform our heuristic function with
+    public int minimax(Board state, int depth, boolean maximizingPlayer, boolean color) {
+        // if we can descend no further or the game has ended, evaluate this node we are at 
+        if (depth == 0 || state.isGameOver()) {
+            // static evaluation of the state
+            return state.heuristic(color);
+        }
+        // maximizing ourself
+        if (maximizingPlayer) {
+            int maxEval = Integer.MIN_VALUE;
+            for (int i = 0; i < state.board.length; i++) {
+                for (int j = 0; j < state.board.length; j++) {
+                    // if we can make the current move, make it and recurse further down the tree
+                    if (state.checkMoveLegality(i, j, new Piece(color))) {
+                        // grab a copy so we dont change the original board state
+                        Board copy = state.copy();
+                        // make a legal move
+                        copy.makeMove(i, j, new Piece(color));
+                        // evaluate further down the tree to see how this move benefits us
+                        // pass false to simulate the other player's move which we would want to harm in our choices to get more pieces on the board
+                        int eval = minimax(copy, depth - 1, false, color);
+                        // take the max of the available options we have seen at this point
+                        maxEval = Math.max(eval, maxEval);
+                    }
+                }
+            }
+            return maxEval;
+        }
+        // minimizing our opponent
+        // extremely similar logic as above, just passing 
+        else {
+            int minEval = Integer.MAX_VALUE;
+            for (int i = 0; i < state.board.length; i++) {
+                for (int j = 0; j < state.board.length; j++) {
+                    if (state.checkMoveLegality(i, j, new Piece(!color))) {
+                        Board copy = state.copy();
+                        copy.makeMove(i, j, new Piece(!color));
+                        int eval = minimax(copy, depth - 1, true, color);
+                        minEval = Math.min(eval, minEval);
+                    }
+                }
+            }
+            return minEval;
+        }
     }
 
     
     public void mainLoop() {
         clear();
+        int winner = 0;
         // clear the board (just in case)
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
@@ -280,9 +337,9 @@ class Board {
                 curPlayer = !curPlayer;
                 continue;
             }
-            if (!checkAnyMovesExist()) {
+            if (isGameOver()) {
                 running = false;
-                gameOver();
+                winner = findWinner();
                 continue;
             }
             if (curPlayer) {
@@ -322,6 +379,15 @@ class Board {
             clear();
         }
         scanner.close();
+        if (winner > 0) {
+            System.out.println("White is the winner!");
+        }
+        else if (winner < 0) {
+            System.out.println("Black is the winner!");
+        }
+        else {
+            System.out.println("Draw game!");
+        }
         System.out.println("\n\nThanks for playing!!!");
     }
 }
