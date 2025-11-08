@@ -307,9 +307,21 @@ class Board {
         }
     }
 
+    public int[] getBestMove(int depth, boolean color) {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board.length; j++) {
+                if (checkMoveLegality(i, j, new Piece(color))) {
+                    Board copy = copy();
+                    copy.makeMove(i, j, new Piece(color));
+                    minimax(copy, depth, true, color);
+                }
+            }
+        }
+    }
     
     public void mainLoop() {
         clear();
+        boolean debugMode = false;
         int winner = 0;
         int MAX_DEPTH = 7;
         // clear the board (just in case)
@@ -384,6 +396,10 @@ class Board {
                     }
                 }
             } 
+            // toggling debug mode 
+            if (input.toUpperCase().equals("DEBUG")) {
+                debugMode = !debugMode;
+            }
             // quitting the game properly 
             if (input.toUpperCase().equals("QUIT")) {
                 running = false;
@@ -398,12 +414,13 @@ class Board {
             // convert chars to ints
             int col = (int) (Character.toUpperCase(input.charAt(0)) - 'A');
             int row = (int) (input.charAt(1) - '1');
-            // input validation
+            // input validation (ensure the input is somewhere on the actual board )
             if (row < 0 || row >= board.length || col < 0 || col >= board.length) {
                 clear();
                 System.out.println("Please enter a valid input! Combinations of (A-H)(1-8) are valid inputs. Ex: A4, B7, ... Invalid move: " + input);
                 continue;
             }
+            // move legality checks
             if (checkMoveLegality(row, col, piece)) {
                 makeMove(row, col, piece);
             }
@@ -412,7 +429,7 @@ class Board {
                 System.out.println("Illegal move! Moves must outflank at least ONE of your opponent's pieces! Invalid move: " + input);
                 continue;
             }
-            // flip player at the end of each turn
+            // change player at the end of each turn
             // we only flip the player (and hit the end of the turn)
             // when a move is considered legal and is properly performed so that someone who CAN perform a turn MUST perform a legal move in that turn
             curPlayer = !curPlayer;
