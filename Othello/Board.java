@@ -268,16 +268,17 @@ class Board {
         }
         // maximizing ourself
         if (maximizingPlayer) {
+            // extremely large negative value so we get replaced each time with a higher value later in the loop 
             int maxEval = Integer.MIN_VALUE;
             for (int i = 0; i < state.board.length; i++) {
                 for (int j = 0; j < state.board.length; j++) {
                     // if we can make the current move, make it and recurse further down the tree
                     if (state.checkMoveLegality(i, j, new Piece(color))) {
-                        // grab a copy so we dont change the original board state
+                        // grab a copy so we dont change the original board state each recurse down the "tree"
                         Board copy = state.copy();
-                        // make a legal move
+                        // make the legal move
                         copy.makeMove(i, j, new Piece(color));
-                        // evaluate further down the tree to see how this move benefits us
+                        // evaluate further down the tree to see how this move benefits us relative to the other choices thus far 
                         // pass false to simulate the other player's move which we would want to harm in our choices to get more pieces on the board
                         int eval = minimax(copy, depth - 1, false, color);
                         // take the max of the available options we have seen at this point
@@ -290,6 +291,7 @@ class Board {
         // minimizing our opponent
         // extremely similar logic as above, just passing 
         else {
+            // extremely large positive value so we get replaced each time with a higher value later in the loop 
             int minEval = Integer.MAX_VALUE;
             for (int i = 0; i < state.board.length; i++) {
                 for (int j = 0; j < state.board.length; j++) {
@@ -309,6 +311,7 @@ class Board {
     public void mainLoop() {
         clear();
         int winner = 0;
+        int MAX_DEPTH = 7;
         // clear the board (just in case)
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
@@ -323,6 +326,8 @@ class Board {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Welcome to Othello! Use the terminal to make a move");
         System.out.println("The board is an 8x8 grid. Please enter moves like \"A4\", where A is the column and 4 is the row");
+        System.out.println("If you would like to adjust the search depth, please enter \"ADJUST\".");
+        System.out.println("If you would like to quit the game, please enter \"QUIT\".");
         boolean running = true;
         boolean curPlayer = false; // true = white, false = black
         int whiteScore = 0;
@@ -331,15 +336,24 @@ class Board {
         while (running) {
             printBoard();
             Piece piece = new Piece(curPlayer);
+            // check at the beginning of each player's turn if they can play
             if (!checkMovesExist(piece)) {
                 clear();
                 System.out.println("No moves exist for current player: turn is skipped!");
                 curPlayer = !curPlayer;
-                continue;
             }
             if (isGameOver()) {
                 running = false;
                 winner = findWinner();
+                if (winner > 0) {
+                System.out.println("White is the winner!");
+                }
+                else if (winner < 0) {
+                    System.out.println("Black is the winner!");
+                }
+                else {
+                    System.out.println("Draw game!");
+                }
                 continue;
             }
             if (curPlayer) {
@@ -349,6 +363,32 @@ class Board {
                 System.out.print("Black's turn: where do you want to place? ");
             }
             String input = scanner.nextLine().trim();
+            if (input.toUpperCase().equals("ADJUST")) {
+                System.out.println("What would you like to adjust the search space to (Values between 0-10 only)? ");
+
+                while (true) {
+                    input = scanner.nextLine().trim();
+                    if (input.length() < 1 || input.length() > 2) {
+                        System.out.println("Invalid input! Search depth must be between 0-10. Invalid input: " + input);
+                    }
+                    else {
+                        // try-catch in case a value is passed that is not an integer in string form 
+                        try {
+                            int newDepth = Integer.parseInt(input);
+                            MAX_DEPTH = newDepth;
+                            break;
+                        }
+                        catch (NumberFormatException e) {
+                            System.out.println("Invalid input! Search depth must be an integer value (0-10, no decimal numbers or characters).");
+                        }
+                    }
+                }
+            } 
+            // quitting the game properly 
+            if (input.toUpperCase().equals("QUIT")) {
+                running = false;
+                continue;
+            }
             // all valid inputs should be of length 2
             if (input.length() != 2) {
                 clear();
@@ -379,15 +419,6 @@ class Board {
             clear();
         }
         scanner.close();
-        if (winner > 0) {
-            System.out.println("White is the winner!");
-        }
-        else if (winner < 0) {
-            System.out.println("Black is the winner!");
-        }
-        else {
-            System.out.println("Draw game!");
-        }
         System.out.println("\n\nThanks for playing!!!");
     }
 }
