@@ -60,9 +60,12 @@ class Board {
 
     // TODO: implement
     private boolean checkMoveLegality(int row, int col, Piece piece) {
-        // check if the space is already occupied
-        if (board[row][col] != null) {
+        // check if the space is already occupied or if the coordinates are out of bounds
+        if (row < 0 || row >= board.length || col < 0 || col >= board.length) {
             return false;   
+        }
+        if (board[row][col] != null) {
+            return false;
         }
         // grab the color of the piece we want to place
         boolean color = piece.color;
@@ -233,6 +236,9 @@ class Board {
         Board newBoard = new Board();
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board.length; j++) {
+                if (board[i][j] == null) {
+                    continue;
+                }
                 newBoard.board[i][j] = new Piece(board[i][j].color);
             }
         }
@@ -260,7 +266,7 @@ class Board {
 
     // a method to perform minimax search. takes in a Board, a depth, a flag for whether to min or max, and a color to
     // perform our heuristic function with
-    public int minimax(Board state, int depth, boolean maximizingPlayer, boolean color) {
+    public int minimax(Board state, int depth, int alpha, int beta, boolean maximizingPlayer, boolean color) {
         // if we can descend no further or the game has ended, evaluate this node we are at 
         if (depth == 0 || state.isGameOver()) {
             // static evaluation of the state
@@ -280,9 +286,13 @@ class Board {
                         copy.makeMove(i, j, new Piece(color));
                         // evaluate further down the tree to see how this move benefits us relative to the other choices thus far 
                         // pass false to simulate the other player's move which we would want to harm in our choices to get more pieces on the board
-                        int eval = minimax(copy, depth - 1, false, color);
+                        int eval = minimax(copy, depth - 1, alpha, beta, false, color);
                         // take the max of the available options we have seen at this point
                         maxEval = Math.max(eval, maxEval);
+                        alpha = Math.max(alpha, eval);
+                        if (beta <= alpha) {
+                            break;
+                        }
                     }
                 }
             }
@@ -298,8 +308,12 @@ class Board {
                     if (state.checkMoveLegality(i, j, new Piece(!color))) {
                         Board copy = state.copy();
                         copy.makeMove(i, j, new Piece(!color));
-                        int eval = minimax(copy, depth - 1, true, color);
+                        int eval = minimax(copy, depth - 1, alpha, beta, true, color);
                         minEval = Math.min(eval, minEval);
+                        beta = Math.min(beta, eval);
+                        if (beta <= alpha) {
+                            break;
+                        }
                     }
                 }
             }
@@ -307,18 +321,30 @@ class Board {
         }
     }
 
+    // a method that returns the best possible move to make 
     public int[] getBestMove(int depth, boolean color) {
+        int bestEval = Integer.MIN_VALUE;
+        // start off of the board to show that we have not found a legal move that is also the best move to make 
+        int[] coordinates = {-1, -1};
+        // iterate across the board
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board.length; j++) {
                 if (checkMoveLegality(i, j, new Piece(color))) {
-                    Board copy = copy();
+                    Board copy = copy();    
                     copy.makeMove(i, j, new Piece(color));
-                    minimax(copy, depth, true, color);
+                    int score = minimax(copy, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, false, color);
+                    if (score > bestEval) {
+                        bestEval = score;
+                        coordinates[0] = i;
+                        coordinates[1] = j;
+                    }
                 }
             }
         }
+        return coordinates;
     }
     
+    // main gameplay loop
     public void mainLoop() {
         clear();
         boolean debugMode = false;
@@ -340,6 +366,7 @@ class Board {
         System.out.println("The board is an 8x8 grid. Please enter moves like \"A4\", where A is the column and 4 is the row");
         System.out.println("If you would like to adjust the search depth, please enter \"ADJUST\".");
         System.out.println("If you would like to quit the game, please enter \"QUIT\".");
+        System.out.println("Default search depth: " + MAX_DEPTH + "\n");
         boolean running = true;
         boolean curPlayer = false; // true = white, false = black
         int whiteScore = 0;
@@ -375,6 +402,22 @@ class Board {
                 System.out.print("Black's turn: where do you want to place? ");
             }
             String input = scanner.nextLine().trim();
+            if (input.toUpperCase().equals("AI")) {
+                if (checkMovesExist(piece)) {
+                    int[] coords = getBestMove(MAX_DEPTH, curPlayer);
+                    if (checkMoveLegality(coords[0], coords[1], piece)) {
+                        makeMove(coords[0], coords[1], piece);
+                        clear();
+                        System.out.println("AI made the move: " + (char) (coords[1] + 'A') + Character.forDigit(coords[0] + 1, 10));
+                        curPlayer = !curPlayer;
+                        continue;
+                    }
+                }
+                clear();
+                System.out.println("No valid moves for AI! Swapping players");
+                curPlayer = !curPlayer;
+                continue;
+            }
             if (input.toUpperCase().equals("ADJUST")) {
                 System.out.println("What would you like to adjust the search space to (Values between 0-10 only)? ");
 
