@@ -19,9 +19,11 @@ class Piece {
 // the gameplay mechanics are played "on" a Board object
 class Board {
     public Piece[][] board;
+    public int encounteredStates;
     
     public Board() {
         board = new Piece[8][8];
+        int encounteredStates = 0;
     }
 
     // a method to represent the board's current state
@@ -267,6 +269,7 @@ class Board {
     // a method to perform minimax search. takes in a Board, a depth, a flag for whether to min or max, and a color to
     // perform our heuristic function with
     public int minimax(Board state, int depth, int alpha, int beta, boolean maximizingPlayer, boolean color) {
+        encounteredStates++;
         // if we can descend no further or the game has ended, evaluate this node we are at 
         if (depth == 0 || state.isGameOver()) {
             // static evaluation of the state
@@ -321,8 +324,58 @@ class Board {
         }
     }
 
+    public int minimax(Board state, int depth, boolean maximizingPlayer, boolean color) {
+        encounteredStates++;
+        // if we can descend no further or the game has ended, evaluate this node we are at 
+        if (depth == 0 || state.isGameOver()) {
+            // static evaluation of the state
+            return state.heuristic(color);
+        }
+        // maximizing ourself
+        if (maximizingPlayer) {
+            // extremely large negative value so we get replaced each time with a higher value later in the loop 
+            int maxEval = Integer.MIN_VALUE;
+            for (int i = 0; i < state.board.length; i++) {
+                for (int j = 0; j < state.board.length; j++) {
+                    // if we can make the current move, make it and recurse further down the tree
+                    if (state.checkMoveLegality(i, j, new Piece(color))) {
+                        // grab a copy so we dont change the original board state each recurse down the "tree"
+                        Board copy = state.copy();
+                        // make the legal move
+                        copy.makeMove(i, j, new Piece(color));
+                        // evaluate further down the tree to see how this move benefits us relative to the other choices thus far 
+                        // pass false to simulate the other player's move which we would want to harm in our choices to get more pieces on the board
+                        int eval = minimax(copy, depth - 1, false, color);
+                        // take the max of the available options we have seen at this point
+                        maxEval = Math.max(eval, maxEval);
+                    }
+                }
+            }
+            return maxEval;
+        }
+        // minimizing our opponent
+        // extremely similar logic as above, just passing 
+        else {
+            // extremely large positive value so we get replaced each time with a higher value later in the loop 
+            int minEval = Integer.MAX_VALUE;
+            for (int i = 0; i < state.board.length; i++) {
+                for (int j = 0; j < state.board.length; j++) {
+                    if (state.checkMoveLegality(i, j, new Piece(!color))) {
+                        Board copy = state.copy();
+                        copy.makeMove(i, j, new Piece(!color));
+                        int eval = minimax(copy, depth - 1, true, color);
+                        minEval = Math.min(eval, minEval);
+                    }
+                }
+            }
+            return minEval;
+        }
+    }
+
     // a method that returns the best possible move to make 
-    public int[] getBestMove(int depth, boolean color) {
+    public int[] getBestMove(int depth, boolean color, boolean isPruning) {
+        // reset this value
+        encounteredStates = 0;
         int bestEval = Integer.MIN_VALUE;
         // start off of the board to show that we have not found a legal move that is also the best move to make 
         int[] coordinates = {-1, -1};
@@ -332,7 +385,15 @@ class Board {
                 if (checkMoveLegality(i, j, new Piece(color))) {
                     Board copy = copy();    
                     copy.makeMove(i, j, new Piece(color));
-                    int score = minimax(copy, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, false, color);
+                    // if we are not pruning, take normal minimax
+                    int score;
+                    if (!isPruning){
+                        score = minimax(copy, depth, false, color);
+                    }
+                    // pruning
+                    else {
+                        score = minimax(copy, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, false, color);
+                    }
                     if (score > bestEval) {
                         bestEval = score;
                         coordinates[0] = i;
@@ -347,9 +408,13 @@ class Board {
     // main gameplay loop
     public void mainLoop() {
         clear();
+        // debug and pruning flags so the user can toggle either
         boolean debugMode = false;
+        boolean isPruning = false;
+        // hold for later so we can declare the winner using findWinner()
         int winner = 0;
-        int MAX_DEPTH = 7;
+        // value the user can change later
+        int maxDepth = 7;
         // clear the board (just in case)
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
@@ -364,9 +429,10 @@ class Board {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Welcome to Othello! Use the terminal to make a move");
         System.out.println("The board is an 8x8 grid. Please enter moves like \"A4\", where A is the column and 4 is the row");
-        System.out.println("If you would like to adjust the search depth, please enter \"ADJUST\".");
+        System.out.println("If you would like to adjust the search depth, please enter \"DEPTH\".");
+        System.out.println("If you would like to toggle alpha-beta pruning, please enter \"PRUNING\".");
         System.out.println("If you would like to quit the game, please enter \"QUIT\".");
-        System.out.println("Default search depth: " + MAX_DEPTH + "\n");
+        System.out.println("Default search depth: " + maxDepth + "\n");
         boolean running = true;
         boolean curPlayer = false; // true = white, false = black
         int whiteScore = 0;
@@ -380,6 +446,7 @@ class Board {
                 clear();
                 System.out.println("No moves exist for current player: turn is skipped!");
                 curPlayer = !curPlayer;
+                continue;
             }
             if (isGameOver()) {
                 running = false;
@@ -404,11 +471,12 @@ class Board {
             String input = scanner.nextLine().trim();
             if (input.toUpperCase().equals("AI")) {
                 if (checkMovesExist(piece)) {
-                    int[] coords = getBestMove(MAX_DEPTH, curPlayer);
+                    int[] coords = getBestMove(maxDepth, curPlayer, isPruning);
                     if (checkMoveLegality(coords[0], coords[1], piece)) {
                         makeMove(coords[0], coords[1], piece);
                         clear();
                         System.out.println("AI made the move: " + (char) (coords[1] + 'A') + Character.forDigit(coords[0] + 1, 10));
+                        System.out.println("AI examined " + encounteredStates + " states before making a move.");
                         curPlayer = !curPlayer;
                         continue;
                     }
@@ -418,8 +486,14 @@ class Board {
                 curPlayer = !curPlayer;
                 continue;
             }
-            if (input.toUpperCase().equals("ADJUST")) {
-                System.out.println("What would you like to adjust the search space to (Values between 0-10 only)? ");
+            if (input.toUpperCase().equals("PRUNING")) {
+                isPruning = !isPruning;
+                clear();
+                System.out.println("PRUNING: " + isPruning);
+                continue;
+            }
+            if (input.toUpperCase().equals("DEPTH")) {
+                System.out.print("What would you like to adjust the search space to (Values between 0-10 only)? ");
 
                 while (true) {
                     input = scanner.nextLine().trim();
@@ -430,14 +504,18 @@ class Board {
                         // try-catch in case a value is passed that is not an integer in string form 
                         try {
                             int newDepth = Integer.parseInt(input);
-                            MAX_DEPTH = newDepth;
+                            maxDepth = newDepth;
                             break;
                         }
                         catch (NumberFormatException e) {
-                            System.out.println("Invalid input! Search depth must be an integer value (0-10, no decimal numbers or characters).");
+                            clear();
+                            System.out.print("Invalid input! Search depth must be an integer value (0-10, no decimal numbers or characters). Please enter a valid depth: ");
                         }
                     }
                 }
+                clear();
+                System.out.println("New search depth: " + maxDepth);
+                continue;
             } 
             // toggling debug mode 
             if (input.toUpperCase().equals("DEBUG")) {
