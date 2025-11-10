@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
 // a Piece has a color and can flip 
 class Piece {
     // let true be white, false be black
@@ -15,10 +16,12 @@ class Piece {
         this.color = !color;
     }
 }
-// a board has 2d array of Pieces and can be printed
+
+// a board has a 2d array of Pieces and can be printed
 // the gameplay mechanics are played "on" a Board object
 class Board {
     public Piece[][] board;
+    // counter for tracking the amount of states that minimax goes down in its search 
     public int encounteredStates;
     
     public Board() {
@@ -27,6 +30,7 @@ class Board {
     }
 
     // a method to represent the board's current state
+    // idea is to make it play like a chess board kinda would
     public void printBoard() {
         System.out.println("  A   B   C   D   E   F   G   H");
         System.out.println("---------------------------------");
@@ -60,17 +64,25 @@ class Board {
         System.out.flush();
     }
 
-    // TODO: implement
+    // a method to check if a move at a position is legal for a specific piece
     private boolean checkMoveLegality(int row, int col, Piece piece) {
         // check if the space is already occupied or if the coordinates are out of bounds
         if (row < 0 || row >= board.length || col < 0 || col >= board.length) {
             return false;   
         }
+        // if the space is not empty, we cannot place a piece there and the move is not legal
         if (board[row][col] != null) {
             return false;
         }
         // grab the color of the piece we want to place
         boolean color = piece.color;
+        // the idea is to iterate "around" the space that we want to place the piece at 
+        // imagine the board as having coordinates (i, j) at the spot we want to place at
+        // there could be opposing pieces at the 8 positions around that spot, so we must do some math to walk around these spots and look and see if
+        // any of these spots have an opposing piece so we can walk down that straight line path
+        // i represents the row, j represents the place in that row relative to the original spot
+        // (i - 1, j) means the space directly above the place we placed at, (i, j + 1) means the space directly to the right of the place we placed at, 
+        // so on and so forth
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 // no need to check the spot we currently want to place at in this point in the sequencing
@@ -82,16 +94,16 @@ class Board {
                 if ((row + i) < 0 || (row + i) >= board.length || (col + j) < 0 || (col + j) >= board.length) {
                     continue;
                 }
-                // check to make sure the current neighbor is occupied before we check color
+                // check to make sure the current neighbor is occupied before we check color to avoid NPE
                 if (board[row + i][col + j] != null) {
                     // check this neighbor to see if it is an opponents color
                     if (board[row + i][col + j].color != color) {
-                        // grab the indices so we can go further in whatever direction we need to
+                        // grab the indices so we can go further in whatever straight line direction we need to 
+                        // relative to the double for loop values 
                         int adjRowIndex = row + i; 
                         int adjColIndex = col + j;
                         adjRowIndex += i;
                         adjColIndex += j;
-                        List<Piece> list = new ArrayList<>();
                         // ensure we do not go out of bounds of the board. if we go out in any dimension, do not iterate further out
                         while (adjRowIndex >= 0 && adjColIndex >= 0 && adjRowIndex < board.length && adjColIndex < board.length) {
                             // go to the next neighbor space
@@ -100,12 +112,12 @@ class Board {
                             if (curPiece == null) {
                                 break;
                             }
-                            // we've found at least one path, so the move becomes legal
+                            // we've found at least one path, so the move automatically becomes legal
                             if (curPiece.color == color) {
                                 return true;
                             }
                             // properly increment in the direction we are meant to walk in
-                            // hitting this means we have only found opponent pieces thus far
+                            // hitting this means we have only found opponent pieces thus far and must further explore the path
                             adjRowIndex += i;
                             adjColIndex += j;
                         }
@@ -113,33 +125,42 @@ class Board {
                 }
             }
         }
-        // never found a legal move
+        // the move is not legal at this point meaning we found no piece of our own to sandwich the pieces between 
         return false;
     }
 
+    // a method to make a move on the board
     // works under the assumption that the move is legal (ie there is a valid path and the space is empty)
+    // only call this after checking that the move is legal in that space and with that piece 
     private void makeMove(int row, int col, Piece piece) {
         board[row][col] = piece;
         boolean color = piece.color;
-        // list to hold all pieces we want to flip 
+        // list to hold all pieces we want to flip along all valid paths
         List<Piece> list = new ArrayList<>();
+        // walk "around" the board relative to the space we placed at
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
+                // ignore position of our newly placed piece
                 if (i == 0 && j == 0) {
                     continue;
                 }
+                // out of bound position
                 if (row + i < 0 || row + i >= board.length || col + j < 0 || col + j >= board.length) {
                     continue;
                 }
+                // empty spaces, no need to explore further as path is not considered legal 
                 if (board[row + i][col + j] == null) {
                     continue;
                 }
+                // if this is true, we found an opponents piece
                 if (board[row + i][col + j].color != color) {
+                    // grab index of where we found the opponents piece
                     int adjRowIndex = row + i;
                     int adjColIndex = col + j;
-                    // walk forward until we hit the end of the path
+                    // walk forward until we hit the end of the potentially legal path
                     while (adjRowIndex >= 0 && adjColIndex >= 0 && adjRowIndex < board.length && adjColIndex < board.length) {
                         Piece curPiece = board[adjRowIndex][adjColIndex];
+                        // if we hit an empty space, it is not legal path anymore
                         if (curPiece == null) {
                             break;
                         }
@@ -147,14 +168,16 @@ class Board {
                             // so we dont recheck the boundary piece we found
                             adjRowIndex -= i;
                             adjColIndex -= j;
-                            // walk in reverse back down the path and accumulate all pieces in between our placed piece and our colored pieces
+                            // walk in reverse back down the path we went down and accumulate all pieces in between our placed piece and our colored pieces
                             while (adjRowIndex != row || adjColIndex != col) {
                                 list.add(board[adjRowIndex][adjColIndex]);
                                 adjRowIndex -= i;
                                 adjColIndex -=j;
                             }
+                            // break out so we can go down every other valid path and accumulate every piece that should be flipped
                             break;
                         }
+                        // continue down if we have not found an opponent piece or the path has become invalid
                         adjRowIndex += i;
                         adjColIndex += j;
                     }
@@ -166,7 +189,7 @@ class Board {
             p.flip();
         }
     }
-    // checks to see if any legal moves exist for a specific player
+    // a method to check and see if any legal moves exist for a specific player
     private boolean checkMovesExist(Piece piece) {
         int legalMoveCount = 0;
         for (int i = 0 ; i < board.length; i++) {
@@ -180,7 +203,7 @@ class Board {
         return legalMoveCount > 0;
     }
     
-    // checks to see if either player can make a move (which signals the end of a game if not)
+    // a method to check and see if either player can make a move (which signals the end of a game if not)
     private boolean isGameOver() {
         int legalWhiteCount = 0;
         int legalBlackCount = 0;
@@ -200,13 +223,14 @@ class Board {
         return !(legalWhiteCount > 0 || legalBlackCount > 0);
     }
 
-    // a method to find who won
+    // a method to find who won the game
     // 1 -> white winner
     // -1 -> black winner
     // 0 -> tie game
     private int findWinner() {
         int blackScore = 0;
         int whiteScore = 0;
+        // iterate across the board and score accordingly for each space 
         for (int i = 0; i < board.length; i++) {
             for (int j = 0 ; j < board.length; j++) {
                 if (board[i][j] == null) {
@@ -233,21 +257,24 @@ class Board {
         }
     }
 
-    // a function to copy over the contents of a Board to a new object
+    // a method to copy over the "contents" of a Board to a new object
     public Board copy() {
+        // make new board object
         Board newBoard = new Board();
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board.length; j++) {
+                // ignore empty spaces
                 if (board[i][j] == null) {
                     continue;
                 }
+                // copy over the piece only so we do not grab references to old pieces and mutate the original board (VERY IMPORTANT FOR LATER)
                 newBoard.board[i][j] = new Piece(board[i][j].color);
             }
         }
         return newBoard;
     }
 
-    // a function to find our heuristic value, which is that having more pieces of your color is good
+    // a method to find our heuristic, which is that having more pieces of your color is good
     public int heuristic(boolean color) {
         int difference = 0;
         for (int i = 0; i < board.length; i++) {
@@ -266,11 +293,12 @@ class Board {
         return difference; 
     }
 
-    // a method to perform minimax search. takes in a Board, a depth, a flag for whether to min or max, and a color to
-    // perform our heuristic function with
+    // a method to perform minimax search (alpha beta pruning version)
+    // heavily copies pseudocode from youtube video in notes
     public int minimax(Board state, int depth, int alpha, int beta, boolean maximizingPlayer, boolean color) {
+        // increment for user to see later
         encounteredStates++;
-        // if we can descend no further or the game has ended, evaluate this node we are at 
+        // if we can descend no further or the game has ended, evaluate this node we are at (leaf node)
         if (depth == 0 || state.isGameOver()) {
             // static evaluation of the state
             return state.heuristic(color);
@@ -324,6 +352,7 @@ class Board {
         }
     }
 
+    // a method to perform minimax search (without pruning, identical logic just without those parameters and conditional checking)
     public int minimax(Board state, int depth, boolean maximizingPlayer, boolean color) {
         encounteredStates++;
         // if we can descend no further or the game has ended, evaluate this node we are at 
@@ -372,17 +401,19 @@ class Board {
         }
     }
 
-    // a method that returns the best possible move to make 
+    // a method that returns the best possible move to make (in coordinate form)
     public int[] getBestMove(int depth, boolean color, boolean isPruning) {
         // reset this value
         encounteredStates = 0;
         int bestEval = Integer.MIN_VALUE;
         // start off of the board to show that we have not found a legal move that is also the best move to make 
+        // initially had this at {0, 0} but this could result in an illegal move being forced to be made 
         int[] coordinates = {-1, -1};
         // iterate across the board
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board.length; j++) {
                 if (checkMoveLegality(i, j, new Piece(color))) {
+                    // copy board state so we do not change the original board 
                     Board copy = copy();    
                     copy.makeMove(i, j, new Piece(color));
                     // if we are not pruning, take normal minimax
@@ -390,10 +421,11 @@ class Board {
                     if (!isPruning){
                         score = minimax(copy, depth, false, color);
                     }
-                    // pruning
+                    // we are pruning
                     else {
                         score = minimax(copy, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, false, color);
                     }
+                    // if score has exceeded, this is our new best move and we must update our coordinates
                     if (score > bestEval) {
                         bestEval = score;
                         coordinates[0] = i;
@@ -408,46 +440,52 @@ class Board {
     // main gameplay loop
     public void mainLoop() {
         clear();
-        // debug and pruning flags so the user can toggle either
-        boolean debugMode = false;
+        // pruning flag so the user can toggle
         boolean isPruning = false;
+        boolean running = true;
+        boolean curPlayer = false; // true = white, false = black
         // hold for later so we can declare the winner using findWinner()
         int winner = 0;
         // value the user can change later
+        // default to 7
         int maxDepth = 7;
+
         // clear the board (just in case)
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 board[i][j] = null;
             }
         }
+
         // set the initial board state
         board[3][3] = new Piece(true);
         board[3][4] = new Piece(false);
         board[4][3] = new Piece(false);
         board[4][4] = new Piece(true);
         Scanner scanner = new Scanner(System.in);
+
+        // explanation stuff 
         System.out.println("Welcome to Othello! Use the terminal to make a move");
         System.out.println("The board is an 8x8 grid. Please enter moves like \"A4\", where A is the column and 4 is the row");
         System.out.println("If you would like to adjust the search depth, please enter \"DEPTH\".");
         System.out.println("If you would like to toggle alpha-beta pruning, please enter \"PRUNING\".");
         System.out.println("If you would like to quit the game, please enter \"QUIT\".");
         System.out.println("Default search depth: " + maxDepth + "\n");
-        boolean running = true;
-        boolean curPlayer = false; // true = white, false = black
-        int whiteScore = 0;
-        int blackScore = 0;
+
         // gameplay loop
         while (running) {
             printBoard();
             Piece piece = new Piece(curPlayer);
+
             // check at the beginning of each player's turn if they can play
+            // skip if not 
             if (!checkMovesExist(piece)) {
                 clear();
                 System.out.println("No moves exist for current player: turn is skipped!");
                 curPlayer = !curPlayer;
                 continue;
             }
+
             if (isGameOver()) {
                 running = false;
                 winner = findWinner();
@@ -462,21 +500,31 @@ class Board {
                 }
                 continue;
             }
+
+            // prompt based on whose turn it is
             if (curPlayer) {
                 System.out.print("White's turn: where do you want to place? ");
             }
             else {
                 System.out.print("Black's turn: where do you want to place? ");
             }
+
+            // grab user input
             String input = scanner.nextLine().trim();
+
+            // AI move occurs
             if (input.toUpperCase().equals("AI")) {
+                // ensure we can make a move before trying to let minimax algorithm work 
                 if (checkMovesExist(piece)) {
                     int[] coords = getBestMove(maxDepth, curPlayer, isPruning);
+                    // ensure the best move is actually legal (really only matters if the move is not on the board)
                     if (checkMoveLegality(coords[0], coords[1], piece)) {
                         makeMove(coords[0], coords[1], piece);
                         clear();
+                        // convert the coordinates back to the format that the board is read in for readability 
                         System.out.println("AI made the move: " + (char) (coords[1] + 'A') + Character.forDigit(coords[0] + 1, 10));
                         System.out.println("AI examined " + encounteredStates + " states before making a move.");
+                        // change character
                         curPlayer = !curPlayer;
                         continue;
                     }
@@ -486,15 +534,19 @@ class Board {
                 curPlayer = !curPlayer;
                 continue;
             }
+
+            // pruning toggle
             if (input.toUpperCase().equals("PRUNING")) {
                 isPruning = !isPruning;
                 clear();
                 System.out.println("PRUNING: " + isPruning);
                 continue;
             }
+
+            // depth adjusting
             if (input.toUpperCase().equals("DEPTH")) {
                 System.out.print("What would you like to adjust the search space to (Values between 0-10 only)? ");
-
+                // infinite loop until we get an actual depth
                 while (true) {
                     input = scanner.nextLine().trim();
                     if (input.length() < 1 || input.length() > 2) {
@@ -517,21 +569,20 @@ class Board {
                 System.out.println("New search depth: " + maxDepth);
                 continue;
             } 
-            // toggling debug mode 
-            if (input.toUpperCase().equals("DEBUG")) {
-                debugMode = !debugMode;
-            }
+
             // quitting the game properly 
             if (input.toUpperCase().equals("QUIT")) {
                 running = false;
                 continue;
             }
+
             // all valid inputs should be of length 2
             if (input.length() != 2) {
                 clear();
                 System.out.println("Please enter a valid input!\nCombinations of (A-H)(1-8) are valid inputs. Ex: A4, B7, ... Invalid move: " + input);
                 continue;
             }
+
             // convert chars to ints
             int col = (int) (Character.toUpperCase(input.charAt(0)) - 'A');
             int row = (int) (input.charAt(1) - '1');
@@ -541,6 +592,7 @@ class Board {
                 System.out.println("Please enter a valid input! Combinations of (A-H)(1-8) are valid inputs. Ex: A4, B7, ... Invalid move: " + input);
                 continue;
             }
+
             // move legality checks
             if (checkMoveLegality(row, col, piece)) {
                 makeMove(row, col, piece);
@@ -550,6 +602,7 @@ class Board {
                 System.out.println("Illegal move! Moves must outflank at least ONE of your opponent's pieces! Invalid move: " + input);
                 continue;
             }
+            
             // change player at the end of each turn
             // we only flip the player (and hit the end of the turn)
             // when a move is considered legal and is properly performed so that someone who CAN perform a turn MUST perform a legal move in that turn

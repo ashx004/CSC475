@@ -1,5 +1,5 @@
 /*
-* Name: 
+* Name: Ashton Harrell
 * Date: 11/6/2025
 * Description: Othello implementation with minimax AI capabilities
 */
