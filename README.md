@@ -1,3 +1,5 @@
+# CSC475
+
 Repository for my assignment submissions for FALL 2025 CSC4753 Artificial Intelligence at Louisiana Tech University. All programs are written in Java
 
 **A2**: trains a small neural 4-3-2 3-layer neural network using provided initial weights and biases, and uses gradient descent and backpropagation to correct error. This is performed across 6 epochs of the full data set.
